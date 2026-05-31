@@ -1,16 +1,12 @@
 {
-  "name": "test",
+  "name": "mike",
   "description": "test...",
   "version": "0.0.1",
-  "author": "somedude",
+  "author": "jsg",
   "scripts": [
     "main.lua"
   ],
-  "sprites": [
-    "test.spr"
-  ],
-  "imgs": [
-    "test.img"
-  ],
+  "sprites": [],
+  "imgs": [],
   "dependencies": []
 }

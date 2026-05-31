@@ -1,0 +1,12 @@
+{
+  "name": "allmikes",
+  "description": "test...",
+  "version": "0.0.1",
+  "author": "jsg",
+  "scripts": [
+    "main.lua"
+  ],
+  "sprites": [],
+  "imgs": [],
+  "dependencies": ["mike"]
+}
