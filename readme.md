@@ -1,18 +1,4 @@
-# wkJellyWorm
-_A dead ProjectX clone for Worms Armageddon 3.8.1_
+# wkJollyWorm
+_A lazy fork of wkjellyworm
 
-This module hooks into most gameplay classes and exposes their functionality and internal structure to LUA scripts. It enables player to alter gameplay physics, object behaviour and add custom weapons.
-
-### Features:
-- Hooked all CTask and CGameTask classes - both member variables and virtual table methods
-- Basic LUA scripting
-- Support for adding more weapons to the game
-- An experimental OpenGL renderer (unfinished)
-- Basic support for online play
-
-## Usage:
-Host a LAN lobby and type: /enable test 
-This will enable a test package with custom airstrike weapons. Type /help for more commands.
-
-## Building:
-Use cmake Release or RelWithDebInfo build types with MSVC compiler. Debug build types will not work due to custom calling conventions in some hooked functions.
+This module is just me playing around with Nizikawa's wkjellyworm, dont expect anything real to come out of it. I have added quite a bit of featurs to it, but they are not really polished enough for a proper release....and may never be, but who knows?
