@@ -33,6 +33,7 @@ int CTaskCrate::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown124"] = &CTaskCrate::unknown124;
 	ut["unknown128"] = &CTaskCrate::unknown128;
 	ut["unknown12C"] = &CTaskCrate::unknown12C;
+	ut["weaponid"] = &CTaskCrate::unknown12C;
 	ut["unknown130"] = &CTaskCrate::unknown130;
 	ut["unknown134"] = &CTaskCrate::unknown134;
 	ut["unknown138"] = &CTaskCrate::unknown138;
@@ -254,6 +255,7 @@ int CTaskCrate::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown498"] = &CTaskCrate::unknown498;
 	ut["unknown49C"] = &CTaskCrate::unknown49C;
 	ut["unknown4A0"] = &CTaskCrate::unknown4A0;
+	ut["hpamount"] = &CTaskCrate::unknown4A0;
 	ut["unknown4A4"] = &CTaskCrate::unknown4A4;
 	ut["unknown4A8"] = &CTaskCrate::unknown4A8;
 	ut["unknown4AC"] = &CTaskCrate::unknown4AC;

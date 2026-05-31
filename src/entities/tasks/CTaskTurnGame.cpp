@@ -13,6 +13,11 @@ void CTaskTurnGame::triggerTaskMessage(Constants::TaskMessage type, size_t size,
 	turngame->vtable8_HandleMessage(turngame, type, size, data);
 }
 
+void calltriggerTaskMessage(int type, int size, int* data) {
+	CTaskTurnGame* turngame = (CTaskTurnGame*)Game::getAddrTurnGameObject();
+	turngame->vtable8_HandleMessage(turngame, (Constants::TaskMessage)type, size, data);
+}
+
 void CTaskTurnGame::triggerArmageddon(int amount, int delay) {
 	int param[4] = {0};
 	param[0] = amount;
@@ -34,11 +39,211 @@ void CTaskTurnGame::spawnObject(SpawnObjectParams * params) {
 	DWORD addrCTurnGameObject = Game::getAddrTurnGameObject();
 	if (!addrCTurnGameObject) return;
 	addrSpawnObject(addrCTurnGameObject, 0, params);
+	printf("object spawned: %d \n", params->type);
+}
+
+void spawnTextObject(std::string str) {
+	DWORD addrCTurnGameObject = Game::getAddrTurnGameObject();
+	if (!addrCTurnGameObject) return;
+	SpawnObjectParams* params = new SpawnObjectParams();
+	params->type = SpawnObjectParams::Type::UnknownTriggerGameText;//Object_TriggerGameText
+	if (str.length() > 43) { //35
+		str = str.substr(0, 43);
+		str += '\0';
+	}
+	memcpy(&params->posX, str.c_str(), str.length());
+	addrSpawnObject(addrCTurnGameObject, 0, params);
+	printf("object spawned: %d \n", params->type);
+}
+
+void getObjects() {
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	turngame->traverse([&](CTask* obj, const int level) {
+		for (int i = 0; i < level; i++) printf("\t");
+	printf("Obj: Type: %d \n", obj->classtype);
+		});
+}
+int getNumObjects(int objtype) {
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	std::unordered_map<int, bool> has;
+	turngame->traverse([&](CTask* obj, const int level) {
+		for (int i = 0; i < level; i++)
+			if ((obj->classtype == objtype) && (has.find(obj->getAddr()) == has.end())) {
+				has[obj->getAddr()] = true;				
+			}
+		});
+	return has.size();
+}
+
+CTask* getObject(int objtype,int index) {
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	std::unordered_map<int, bool> has;
+	CTask* ret = nullptr;
+	turngame->traverse([&](CTask* obj, const int level) {
+	for (int i = 0; i < level; i++)
+		if ((obj->classtype == objtype) && (has.find(obj->getAddr()) == has.end())) {
+			has[obj->getAddr()] = true;
+		if (index == has.size()) {
+			ret = obj;
+		}
+	}
+		});
+	return ret;
+}
+
+CTaskWorm* getWorm(int index) {
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	std::unordered_map<int, bool> has;
+	CTaskWorm* ret = nullptr;
+	turngame->traverse([&](CTask* obj, const int level) {
+		for (int i = 0; i < level; i++)
+		if ((obj->classtype == ClassType_Task_Worm) && (has.find(obj->getAddr()) == has.end())) {
+			has[obj->getAddr()] = true;
+			if (index == has.size()) {
+				ret = (CTaskWorm*)obj;
+			}
+		}
+		});
+	return ret;
 }
 
 
+//int(__stdcall* origShouldPauseTurn)();
+//int __stdcall CTaskTurnGame::hookShouldPauseTurn() {
+//	CTaskTurnGame* This;
+//	int retv;
+//	_asm mov This, eax
+//
+//	_asm mov eax, This
+//	_asm call origShouldPauseTurn
+//	_asm mov retv, eax
+//
+//	return retv;
+//}
+//
+
+int getWind()
+{
+	DWORD collisionmanager = *(DWORD*)(Game::getAddrGameGlobal() + 0x528);
+	return *(DWORD*)(collisionmanager + 0x230);
+}
+void setWind(int val)
+{
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	DWORD collisionmanager = *(DWORD*)(Game::getAddrGameGlobal() + 0x528);
+	*(DWORD*)(collisionmanager + 0x230) = val;
+	turngame->vtable8_HandleMessage(turngame, Constants::TaskMessage::TaskMessage_SetWind, sizeof(*(DWORD*)(collisionmanager + 0x230)), &*(DWORD*)(collisionmanager + 0x230)); // just to update UI
+}
+
+void setGravity(int val)
+{
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	DWORD collisionmanager = *(DWORD*)(Game::getAddrGameGlobal() + 0x528);
+	*(DWORD*)(collisionmanager + 0x22E) = val;
+}
+
+
+
+_HookDefLazy(CanTurnEnd, int, __stdcall, ()) { //not qwhat I expected, it just tells you if the turn is ongoing enough and should be ended
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	int retv;
+	_asm mov eax, turngame 
+	return origCanTurnEnd();
+}
+int callCanTurnEnd() {
+	int ret = hookCanTurnEnd();	
+	return ret;
+}
+
+
+_HookDefLazy(AllowWormDamage, int, __stdcall, ()) {
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	int retv;
+	_asm mov esi, turngame //I dunno wtf the callconvention here is so lets just shove this in, lol
+	return origAllowWormDamage();
+}
+bool mutespeech = false;
+int callAllowWormDamage(bool mute) {
+	if (mute) { mutespeech = true; }
+	int ret = hookAllowWormDamage();
+	mutespeech = false;
+	return ret;
+}
+
+
+_HookDefLazy(AllowWormDeath, int, __stdcall, ()) { 
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	int retv;
+	_asm mov edi, turngame //I dunno wtf the callconvention here is so lets just shove this in, lol
+	return origAllowWormDeath();
+}
+/*
+_HookDefLazy(UpdateDamageDisplay, int, __fastcall, (CTaskWorm* worm)) {
+	return origUpdateDamageDisplay(worm);
+}
+
+_HookDefLazy(WormSound, int, __fastcall, (CTaskWorm* worm)) { //this is actually for worm walking/jumping and shit like that
+	//_asm mov [ESP+4], 0 //2nd stack thing, its volume
+	return origWormSound(worm);
+}
+int callUpdateDamageDisplay(CTaskWorm* worm) { //this doesnt really update anything, its a render update thing...
+	_asm mov ecx, worm //I dunno wtf the callconvention here is so lets just shove this in, lol
+	return origUpdateDamageDisplay(worm);
+}
+
+*/
+_HookDefLazy(EmitSpeech, int, __fastcall, (CTaskWorm* worm)) { //this is for phrases other than yes sir (revenge and shit)
+	//_asm mov [ESP+4], 0 //2nd stack thing, its volume
+	if (mutespeech) { return 0; }
+	return origEmitSpeech(worm);
+}
+
+//8b4424??8b40??83b8????????00
+_HookDefLazy(SetCameraTrackTarget, void, __fastcall, (int x, int y, CGameTask* a2, int priority)) {
+	//printf("x: %d, y: %d, p11: %d, p22: %d, \n", x,y, a2, priority);
+	return origSetCameraTrackTarget(x, y, a2, priority);
+}
+void callSetCameraTrackTarget(int x, int y, int priority) {
+	auto ddgame = Game::getAddrDDGame();
+	CGameTask* turngame = *(CGameTask**)(ddgame + 0x8);
+	return hookSetCameraTrackTarget(x, y, turngame, priority);
+}
+_HookDefLazy(FocusCamera, void, __fastcall, (int x, int y, CGameTask* focusobj)) {
+	//printf("CTASK: %d, X: %d , %d \n", focusobj, x, y);
+	return origFocusCamera(x, y, focusobj);
+}
+void callFocusCamera(int x, int y) {
+	auto ddgame = Game::getAddrDDGame();
+	CGameTask* turngame = *(CGameTask**)(ddgame + 0x8);
+	return hookFocusCamera(x, y, turngame);
+}
+
+_HookDefLazy(CreateSmoke, void, __stdcall, (CGameTask* param_1, int smoketype, int x, int y, int smokeamount)) {
+	auto ddgame = Game::getAddrDDGame();
+	CGameTask* turngame = *(CGameTask**)(ddgame + 0x8);
+		origCreateSmoke(param_1, smoketype, x, y, smokeamount); 
+}
+void callCreateSmoke(int x, int y, int smoketype, int smokeamount) {
+	auto ddgame = Game::getAddrDDGame();
+	CGameTask* turngame = *(CGameTask**)(ddgame + 0x8);
+	return hookCreateSmoke(turngame, smoketype, x, y, smokeamount);
+}
+
 int CTaskTurnGame::install(SignatureScanner &signatureScanner, module mod) {
 	DWORD addrConstructCTaskTurnGame =   Hooks::scanPattern("ConstructCTaskTurnGame", "\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x53\x55\x8B\x6C\x24\x1C\x56\x8B\x74\x24\x1C\x57\x55\x8B\xF9\x57\x56\xE8\x00\x00\x00\x00\x33\xDB\x89\x5C\x24\x18\xC7\x06\x00\x00\x00\x00\xC7\x46\x00\x00\x00\x00\x00\xC7\x46\x00\x00\x00\x00\x00", "???????xx????xxxx????xxxxxxxxxxxxxxxxxx????xxxxxxxx????xx?????xx?????", 0x55B280);
+
+	//DWORD addrShouldPauseTurn = Hooks::scanPattern("ShouldPauseTurn", "\x53\x8B\x58\x7C\x56\x57\xBF\x00\x00\x00\x00\x3B\xDF\x7C\x41\x8B\x70\x2C\x81\xC6\x00\x00\x00\x00\xEB\x06\x8D\x9B\x00\x00\x00\x00\x8B\x96\x00\x00\x00\x00\xB8\x00\x00\x00\x00\x3B\xD0\x7C\x14\x8B\xCE", "??????x????xxxxxxxxx????xxxxxxxxxx????x????xxxxxx");
+	//Hooks::minhook("CTaskTurnGameShouldPause", addrShouldPauseTurn, (DWORD*)&hookShouldPauseTurn, (DWORD*)&origShouldPauseTurn);
+
 	DWORD* addrCTaskTurnGameVTable = *(DWORD**)(addrConstructCTaskTurnGame + 0x33);
 //	addrCTaskTurnGameHandleMessage = *(DWORD*)(addrCTaskTurnGameVTable + 8);
 
@@ -47,12 +252,78 @@ int CTaskTurnGame::install(SignatureScanner &signatureScanner, module mod) {
 				Hooks::scanPattern("SpawnObject","\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x81\xEC\x00\x00\x00\x00\x53\x55\x8B\xAC\x24\x00\x00\x00\x00\x56\x8B\xF1\x57\x33\xC9\x56\x8D\x51\x19\xE8\x00\x00\x00\x00\x89\x44\x24\x18\x33\xC0\x6A\x2C\x33\xDB", "???????xx????xxxx????xx????xxxxx????xxxxxxxxxxx????xxxxxxxxxx", 0x561CF0);
 
 	CTaskAddVTHooks(CTaskTurnGame, addrCTaskTurnGameVTable)
-//	Hooks::minhook("CTaskTurnGameHandleMessage", addrCTaskTurnGameHandleMessage, (DWORD*)&hookCTaskTurnGameHandleMessage, (DWORD*)&origCTaskTurnGameHandleMessage);
+
+	_ScanLazy(AllowWormDamage, "8b068b50??5355");
+	_HookDefault(AllowWormDamage);
+	
+	_ScanLazy(AllowWormDeath, "81ecc0070000");
+	_HookDefault(AllowWormDeath);
+	
+	_ScanLazy(CanTurnEnd, "8b48??8b51??80ba????????00");
+	_HookDefault(CanTurnEnd);
+	
+	_ScanLazy(CreateSmoke, "558bec83e4f86aff68????????64a1????????50648925????????81ec50080000");
+	_HookDefault(CreateSmoke);
+	/*
+	_ScanLazy(UpdateDamageDisplay, "83b9????????00535657");
+	_HookDefault(UpdateDamageDisplay);
+	
+	_ScanLazy(WormSound, "518b97????????85d253");
+	_HookDefault(WormSound);
+	*/
+	_ScanLazy(EmitSpeech, "8b86????????85c05357");
+	_HookDefault(EmitSpeech);
 
 	auto * lua = Lua::getInstance().getState();
+
+	sol::usertype <SpawnObjectParams> ux = lua->new_usertype<SpawnObjectParams>("SpawnObjectParams");
+	lua->set_function("spawnObject", &spawnObject);
+	lua->set_function("displayTransmissionText", &spawnTextObject);
+	ux["type"] =  &SpawnObjectParams::type;
+	ux["posX"] =  &SpawnObjectParams::posX;
+	ux["posY"] = &SpawnObjectParams::posY;
+	ux["unkC"] = &SpawnObjectParams::unkC;
+	ux["unk10"] = &SpawnObjectParams::unk10;
+	ux["unk14"] = &SpawnObjectParams::unk14;
+	ux["unk18"] = &SpawnObjectParams::unk18;
+	ux["unk1C"] = &SpawnObjectParams::unk1C;
+	ux["unk20"] = &SpawnObjectParams::unk20;
+	ux["unk24"] = &SpawnObjectParams::unk24;
+
 	sol::usertype <CTaskTurnGame> ut = lua->new_usertype <CTaskTurnGame> ("CTaskTurnGame", sol::base_classes, sol::bases<CTask>());
 	CTaskAddLuaVTHooks(CTaskTurnGame)
 
+
+
+	_ScanLazy(FocusCamera, "8b4424??568b70");
+	_HookDefault(FocusCamera);
+
+	_ScanLazy(SetCameraTrackTarget, "8b4424??8b40??83b8????????00");
+	_HookDefault(SetCameraTrackTarget);
+
+	lua->set_function("focusCamera", &callFocusCamera);
+	lua->set_function("setCameraTracker", &callSetCameraTrackTarget);
+	lua->set_function("createSmoke", &callCreateSmoke);
+
+
+		lua->set_function("triggerArmageddon", &triggerArmageddon);
+		lua->set_function("triggerQuake", &triggerQuake);
+		lua->set_function("getObjects", &getObjects);
+		lua->set_function("getNumObjects", &getNumObjects);
+		lua->set_function("getObject", &getObject);
+		lua->set_function("getWorm", &getWorm);
+		lua->set_function("getWind", &getWind);
+		lua->set_function("setWind", &setWind);
+
+		lua->set_function("CTaskTurnGame_SendMessage", &calltriggerTaskMessage);
+
+		lua->set_function("allowWormDamage", &callAllowWormDamage);
+		lua->set_function("canTurnEnd", &callCanTurnEnd);
+		lua->set_function("allowWormDeath", &hookAllowWormDeath);
+		//lua->set_function("updateDamageDisplay", &callUpdateDamageDisplay);
+		//lua->set_function("setGravity", &setGravity); //does work but you have to do it eah frame which makes it sort of useless, lol
+
+	//ut["wind"] = (DWORD*)(collisionmanager + 0x230); //this is a fucking lie, its not part of turngame, but it fits here so whatever
 	ut["unknown30"] = &CTaskTurnGame::unknown30;
 	ut["unknown34"] = &CTaskTurnGame::unknown34;
 	ut["unknown38"] = &CTaskTurnGame::unknown38;
@@ -70,9 +341,10 @@ int CTaskTurnGame::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown68"] = &CTaskTurnGame::unknown68;
 	ut["unknown6C"] = &CTaskTurnGame::unknown6C;
 	ut["unknown70"] = &CTaskTurnGame::unknown70;
-	ut["unknown74"] = &CTaskTurnGame::unknown74;
+	ut["readyforadvance"] = &CTaskTurnGame::unknown74; //28
 	ut["unknown78"] = &CTaskTurnGame::unknown78;
 	ut["unknown7C"] = &CTaskTurnGame::unknown7C;
+	ut["numberofteams"] = &CTaskTurnGame::unknown7C;
 	ut["unknown80"] = &CTaskTurnGame::unknown80;
 	ut["unknown84"] = &CTaskTurnGame::unknown84;
 	ut["unknown88"] = &CTaskTurnGame::unknown88;
@@ -116,16 +388,20 @@ int CTaskTurnGame::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown120"] = &CTaskTurnGame::unknown120;
 	ut["unknown124"] = &CTaskTurnGame::unknown124;
 	ut["unknown128"] = &CTaskTurnGame::unknown128;
+	ut["currteamone"] = &CTaskTurnGame::unknown12C;
 	ut["unknown12C"] = &CTaskTurnGame::unknown12C;
 	ut["unknown130"] = &CTaskTurnGame::unknown130;
 	ut["unknown134"] = &CTaskTurnGame::unknown134;
+	ut["currteamtwo"] = &CTaskTurnGame::unknown134;
 	ut["unknown138"] = &CTaskTurnGame::unknown138;
 	ut["unknown13C"] = &CTaskTurnGame::unknown13C;
 	ut["unknown140"] = &CTaskTurnGame::unknown140;
+	ut["roundnotstarted"] = &CTaskTurnGame::unknown140;
 	ut["unknown144"] = &CTaskTurnGame::unknown144;
 	ut["unknown148"] = &CTaskTurnGame::unknown148;
 	ut["unknown14C"] = &CTaskTurnGame::unknown14C;
 	ut["unknown150"] = &CTaskTurnGame::unknown150;
+	ut["turnpaused"] = &CTaskTurnGame::unknown150;
 	ut["unknown154"] = &CTaskTurnGame::unknown154;
 	ut["unknown158"] = &CTaskTurnGame::unknown158;
 	ut["unknown15C"] = &CTaskTurnGame::unknown15C;
@@ -136,11 +412,16 @@ int CTaskTurnGame::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown170"] = &CTaskTurnGame::unknown170;
 	ut["unknown174"] = &CTaskTurnGame::unknown174;
 	ut["unknown178"] = &CTaskTurnGame::unknown178;
+	ut["retreattimer"] = &CTaskTurnGame::unknown178;
 	ut["unknown17C"] = &CTaskTurnGame::unknown17C;
 	ut["unknown180"] = &CTaskTurnGame::unknown180;
+	ut["lastsecondstimer"] = &CTaskTurnGame::unknown180;
 	ut["unknown184"] = &CTaskTurnGame::unknown184;
+	ut["roundtimer"] = &CTaskTurnGame::unknown184;
 	ut["unknown188"] = &CTaskTurnGame::unknown188;
+	ut["turntimerone"] = &CTaskTurnGame::unknown188;
 	ut["unknown18C"] = &CTaskTurnGame::unknown18C;
+	ut["turntimertwo"] = &CTaskTurnGame::unknown18C;
 	ut["unknown190"] = &CTaskTurnGame::unknown190;
 	ut["unknown194"] = &CTaskTurnGame::unknown194;
 	ut["unknown198"] = &CTaskTurnGame::unknown198;
@@ -222,6 +503,7 @@ int CTaskTurnGame::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown2C8"] = &CTaskTurnGame::unknown2C8;
 	ut["unknown2CC"] = &CTaskTurnGame::unknown2CC;
 	ut["unknown2D0"] = &CTaskTurnGame::unknown2D0;
+	ut["framespassed"] = &CTaskTurnGame::unknown2D4;
 	ut["unknown2D4"] = &CTaskTurnGame::unknown2D4;
 	ut["unknown2D8"] = &CTaskTurnGame::unknown2D8;
 	ut["unknown2DC"] = &CTaskTurnGame::unknown2DC;

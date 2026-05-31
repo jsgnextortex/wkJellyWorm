@@ -39,10 +39,13 @@ void Sprites::resetConfig() {
 int (__fastcall *origLoadSprite)(DWORD DD_Display, int EDX, int palette, int id, int a4, int a5, const char *filename);
 int __fastcall Sprites::hookLoadSprite(DWORD DD_Display, int EDX, int palette, int id, int a4, int a5, const char *filename) {
 	int ret = origLoadSprite(DD_Display, EDX, palette, id, a4, a5, filename);
-//	printf("loadSprite: %s = %d  (%X), palette: %d a4: %X a5: %X\n", filename, id, ret, palette, a4, a5);
+	//printf("loadSprite: %s = %d  (%X), palette: %d a4: %X a5: %X\n", filename, id, ret, palette, a4, a5);
 	return ret;
 }
-
+//loadSprite: wutllnkd.spr = 330  (1), palette: 1 a4: 0 a5: 1203DD48
+//loadSprite: gfx0\wjetlnk.spr | wjetlnk.spr = 331  (0), palette: 1 a4 : 0 a5 : 12057830
+//loadSprite : wjetlnk.spr = 331  (1), palette : 1 a4 : 0 a5 : 1203DD48
+//loadSprite : gfx0\wjetlnku.spr | wjetlnku.spr = 332  (0), palette: 1 a4 : 0 a5 : 12057830
 
 
 //signed int __userpurge process_sprite_sub_4FA7E0@<eax>(int a1@<eax>, int palette_a2@<ecx>, int a3)
@@ -97,6 +100,7 @@ DWORD __stdcall Sprites::hookLoadSprite_OpenVfsReader(int a3, int a4) {
 DWORD origDrawSpriteGlobal;
 void Sprites::callDrawSpriteGlobal(int posy, int layer, int posx, int sprite, int frame) {
 	DWORD gamescene = *(DWORD*)(Game::getAddrGameGlobal() + 0x524);
+	//frame = frame * 1000; //dont ask I have no fucking clue, but I dont want to input frames in the thousands for no fucking reaosn
 	_asm push frame
 	_asm push sprite
 	_asm push posx
@@ -106,9 +110,12 @@ void Sprites::callDrawSpriteGlobal(int posy, int layer, int posx, int sprite, in
 	_asm call origDrawSpriteGlobal
 }
 
+
 DWORD origDrawSpriteLocal;
 void Sprites::callDrawSpriteLocal(int posy, int layer, int posx, int sprite, int frame) {
 	DWORD gamescene = *(DWORD*)(Game::getAddrGameGlobal() + 0x524);
+	//frame = frame * 1000; 
+	//sprite |= 0x4000000; // 0x4000000 0x200000 0x8000000 0x10000000
 	_asm push frame
 	_asm push sprite
 	_asm push posx
@@ -143,10 +150,35 @@ int Sprites::install(SignatureScanner &, module) {
 	Hooks::polyhook("ProcessSprite", addrProcessSprite, (DWORD *) &hookProcessSprite, (DWORD *) &origProcessSprite);
 	Hooks::polyhook("DestroySprite", addrDestroySprite, (DWORD *) &hookDestroySprite, (DWORD *) &origDestroySprite);
 	Hooks::polyhook("LoadSprite_OpenVfsReader", addrLoadSprite_OpenVfsReader, (DWORD *) &hookLoadSprite_OpenVfsReader, (DWORD *) &origLoadSprite_OpenVfsReader);
+	
+	auto* lua = Lua::getInstance().getState();
+	sol::usertype <Sprites> ut = lua->new_usertype <Sprites>("Sprites", sol::base_classes, sol::bases<>());
 
-	auto * lua = Lua::getInstance().getState();
+	ut["dword0"] = &Sprites::dword0;
+	ut["dword4"] = &Sprites::dword4;
+	ut["word8"] = &Sprites::word8;
+	ut["fps_wordA"] = &Sprites::fps_wordA;
+	ut["width_wordC"] = &Sprites::width_wordC;
+	ut["height_wordE"] = &Sprites::height_wordE;
+	ut["flags_word10"] = &Sprites::flags_word10;
+	ut["max_frames_copy_word12"] = &Sprites::max_frames_copy_word12;
+	ut["word14"] = &Sprites::word14;
+	ut["max_frames_word16"] = &Sprites::max_frames_word16;
+	ut["word18"] = &Sprites::word18;
+	ut["word1A"] = &Sprites::word1A;
+	ut["dword1C"] = &Sprites::dword1C;
+	ut["dword20"] = &Sprites::dword20;
+	ut["dword24"] = &Sprites::dword24;
+	ut["frame_meta_ptr_dword28"] = &Sprites::frame_meta_ptr_dword28;
+	ut["dword2C"] = &Sprites::dword2C;
+	ut["word30"] = &Sprites::word30;
+	ut["word32"] = &Sprites::word32;
+
+	
 	lua->set_function("registerCustomSprite", &registerCustomSprite);
 	lua->set_function("drawSpriteLocal", &callDrawSpriteLocal);
 	lua->set_function("drawSpriteGlobal", &callDrawSpriteGlobal);
 	return 0;
 }
+
+

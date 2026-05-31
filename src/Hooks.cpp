@@ -4,6 +4,7 @@
 #include "Hooks.h"
 #include "Config.h"
 #include <fstream>
+#include <format>
 #include <json.hpp>
 #include <MinHook.h>
 #include <polyhook2/CapstoneDisassembler.hpp>
@@ -32,6 +33,36 @@ void Hooks::polyhook(std::string name, DWORD pTarget, DWORD *pDetour, DWORD *ppO
 	hookAddrToName[pTarget] = name;
 	hookNameToAddr[name] = pTarget;
 	printf("polyhook: %s 0x%X -> 0x%X\n", name.c_str(), pTarget, pDetour);
+}
+
+void Hooks::hook(std::string name, DWORD pTarget, DWORD* pDetour, DWORD* ppOriginal, const char* line) {
+	static PLH::CapstoneDisassembler dis(PLH::Mode::x86);
+	if (!pTarget)
+		throw std::runtime_error("Hook adress is null: " + name);
+	if (hookNameToAddr.find(name) != hookNameToAddr.end())
+		throw std::runtime_error("Hook name reused: " + name);
+	if (hookAddrToName.find(pTarget) != hookAddrToName.end()) {
+		std::stringstream ss;
+		ss << "The specified address is already hooked: " << name << "(0x" << std::hex << pTarget << "), " << hookAddrToName[pTarget];
+		throw std::runtime_error(ss.str());
+	}
+
+	uint64_t trampoline = 0;
+	auto detour = std::make_unique<PLH::x86Detour>(pTarget, (const uint64_t)pDetour, &trampoline, dis);// 20); //polyhookmaxdepth
+	if (!detour->hook()) {
+		throw std::runtime_error("Failed to create hook: " + name);
+	}
+	detours.push_back(std::move(detour));
+	*ppOriginal = (DWORD)trampoline;
+
+	hookAddrToName[pTarget] = name;
+	hookNameToAddr[name] = pTarget;
+	if (!line) {
+		printf("%s 0x%X -> 0x%X\n", name.c_str(), pTarget, pDetour);
+	}
+	else {
+		printf("%s: hook: %s 0x%X -> 0x%X\n", line, name.c_str(), pTarget, pDetour);
+	}
 }
 
 void Hooks::minhook(std::string name, DWORD pTarget, DWORD *pDetour, DWORD *ppOriginal) {

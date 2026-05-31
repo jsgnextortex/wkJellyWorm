@@ -8,6 +8,93 @@
 #include "entities/tasks/CTaskTeam.h"
 #include "Constants.h"
 #include "entities/Entities.h"
+#include "Lua.h"
+#include "sol/sol.hpp"
+
+
+#if !defined(ENUMS)
+#define ENUMS 1
+
+enum ActivationType
+{
+	NoneActType,
+	Crosshair,
+	Throw,
+	Airstrike,
+	Spacebar
+};
+
+enum Action
+{
+	Action_None,
+	Action_Home,
+	Action_Bounce,
+	Action_Roam,
+	Action_Dig
+};
+
+enum ExplosionTarget
+{
+	Target_None,
+	Target_Clusters,
+	Target_Fire
+};
+
+enum AirstrikeAction
+{
+	Airstrike_None,
+	Airstrike_Mines,
+	Airstrike_Worms,
+	Airstrike_Launcher
+};
+
+enum SpaceWeap
+{
+	Space_None,
+	Space_Firepunch,
+	Space_Baseballbat,
+	Space_Dragonball,
+	Space_Kamikaze,
+	Space_Suicidebomber,
+	Space_Ninjarope,
+	Space_Bungee,
+	Space_Pneumaticdrill,
+	Space_Prod,
+	Space_Teleport,
+	Space_Blowtorch,
+	Space_Parachute,
+	Space_Surrender,
+	Space_Skipgo,
+	Space_Selectworm,
+	Space_Nucleartest,
+	Space_Girder,
+	Space_Battleaxe,
+	Space_Utility,
+	Space_Freeze,
+	Space_Earthquake,
+	Space_Scalesofjustice,
+	Space_Jetpack,
+	Space_Armageddon,
+};
+
+enum CrosshairType
+{
+	Crosshair_None,
+	Crosshair_Flamethrower,
+	Crosshair_Gun,
+	Crosshair_Launcher,
+	Crosshair_Bow
+};
+
+enum ThrowType
+{
+	Throw_None,
+	Throw_Mine,
+	Throw_Launcher,
+	Throw_Canister
+};
+
+#endif
 
 class CustomWeapons {
 public:
@@ -20,27 +107,27 @@ public:
 	static const int numTeams = 6;
 
 	struct WeaponStruct {
-		char * name1; // 0x0
-		char * name2; // 0x4
+		char* name1; // 0x0
+		char* name2; // 0x4
 		int panelRow; // 0x8
-		int unknownC; // 0xC
-		int unknown10; // 0x10
-		int unknown14; // 0x14
-		int unknown18; // 0x18
-		int unknown1C; // 0x1C
+		int remembered; // 0xC
+		int usableincavern; // 0x10
+		int numberofshots; // 0x14
+		int endsturn; // 0x18
+		int retreattime; // 0x1C
 		int unknown20; // 0x20
-		int unknown24; // 0x24
-		int unknown28; // 0x28
-		int unknown2C; // 0x2C
-		int unknown30; // 0x30
-		int unknown34; // 0x34
-		int unknown38; // 0x38
-		int unknown3C; // 0x3C
-		int unknown40; // 0x40
-		int unknown44; // 0x44
-		int unknown48; // 0x48
-		int unknown4C; // 0x4C
-		int unknown50; // 0x50
+		int cratechance; // 0x24
+		int crateammo; // 0x28
+		int customdata; // 0x2C
+		int activationtype; // 0x30
+		int activationparam; // 0x34
+		int Param1; // 0x38
+		int Param2; // 0x3C
+		int Param3; // 0x40
+		int Param4; // 0x44
+		int Param5; // 0x48
+		int Param6; // 0x4C
+		int Param7; // 0x50
 		int unknown54; // 0x54
 		int unknown58; // 0x58
 		int unknown5C; // 0x5C
@@ -138,6 +225,471 @@ public:
 		int unknown1CC; // 0x1CC
 	};
 
+
+	struct Explosion {
+		int collisionflags;
+		int bias;
+		int push;
+		int damage;
+		int damagevariation;
+
+	};
+
+	struct DragonBall {
+		int Sound; // 0x38
+		int ImpactSound; // 0x3C
+		int Sprite; // 0x40
+		int Damage; // 0x44
+		int Angle; // 0x48
+		int Force; // 0x4C
+		int FlyingTime; // 0x50
+	};
+
+	struct Kamikaze {
+		int FlyingTime; // 0x38
+		int ExplosionDamage; // 0x3C
+		int FireSound; // 0x40
+		int Damage; // 0x44
+		int ImpactForce; // 0x48
+		int ImpactAngle; // 0x4C
+	};
+
+	struct FirePunch {
+		int Damage; // 0x38
+		int Angle; // 0x3C
+		int Push; // 0x40
+		int Height; // 0x44
+	};
+
+	struct Drill {
+		int Damage; // 0x38
+		int PushPower; // 0x3C
+		int ImpactAngle; // 0x40
+		int Duration; // 0x44
+	};
+
+	struct Blowtorch {
+		int Damage; // 0x38
+		int PushPower; // 0x3C
+		int ImpactAngle; // 0x40
+		int Duration; // 0x44
+	};
+	
+	struct Prod {
+		int Damage; // 0x38
+		int PushPower; // 0x3C
+		int Angle; // 0x40
+	};
+	
+	struct NinjaRope {
+		int Shots; // 0x38
+		int Length; // 0x3C
+		int AngleRestriction; // 0x40
+	};
+	
+	struct Bat {
+		int Damage; // 0x38
+		int PushPower; // 0x3C
+	};
+	
+	struct Suicide {
+		int Poison; // 0x38
+		int Damage; // 0x3C
+	};
+	
+	struct NuclearTest {
+		int WaterRise; // 0x38
+		int Poison; // 0x3C
+	};
+	
+	struct JetPack {
+		int Fuel; // 0x38
+	};
+	
+	struct BattleAxe {
+		int Percentage; // 0x38
+	};
+	
+	struct Parachute {
+		int WindFactor; // 0x38
+	};
+
+
+
+
+	struct Sprite {
+		int spriteid;
+		int animationtype;
+		int trailsprite;
+		int trailamount;
+		int trailvanishspeed;
+		int unknown;
+
+	};
+
+	struct Sound {
+		short soundid;
+		bool loop;
+		int isexplosion;
+		int beforeexplosion;
+		int delay;
+	};
+
+	struct Mine {
+		int Radius; // 0x3C
+		int Delay; // 0x40
+		int DetectionFlags; // 0x44
+		int FuseTime; // 0x48
+		int ExplosionBias; // 0x4C
+		int Power; // 0x4C
+		int Damage; // 0x4C
+	};
+
+	struct Airstrike {
+		int PlaneSprite; // 0x3C
+		int BombsCount; // 0x3C
+		int DropsSpacing; // 0x3C
+		int PlaneSpeed; // 0x3C
+		int Sound; // 0x3C
+		int Action; // 0x3C
+		int ActionData; // 0x3C
+	};
+
+	struct Canister {
+		int SpriteInactive; // 0x3C
+		int SpriteActive; // 0x40
+		int PoisonAmount; // 0x44
+		int Damage; // 0x48
+	};
+
+	struct Gun {
+		int bulletcount; // 0x3C
+		int reloadtime; // 0x40
+		int bulletspread; // 0x44
+		int brust; // 0x48
+		int brustspread; // 0x4C
+		Explosion explosion; // 0x50
+		int expeffect; // 0x64
+		int range1; // 0x68
+		int range2; // 0x6C
+		int range3; // 0x70
+	};
+
+	struct Flamethrower {
+		int fuel; // 0x3C
+		int fireintensity; // 0x40
+		int fireamount; // 0x44
+		int burntime; // 0x48
+		int persistent; // 0x4C
+	};
+
+
+
+
+	struct ExplosionAction {
+		int unknownA8; // 0xA8
+		int unknownAC; // 0xAC
+		int unknownB0; // 0xB0
+		int unknownB4; // 0xB4
+		int unknownB8; // 0xB8
+		int unknownBC; // 0xBC
+		int unknownC0; // 0xC0
+		int unknownC4; // 0xC4
+		int unknownC8; // 0xC8
+		int unknownCC; // 0xCC
+		int unknownD0; // 0xD0
+		int unknownD4; // 0xD4
+		int unknownD8; // 0xD8
+		int unknownDC; // 0xDC
+		int unknownE0; // 0xE0
+		int unknownE4; // 0xE4
+		int unknownE8; // 0xE8
+		int unknownEC; // 0xEC
+	};
+
+	struct FireExplosion {
+		int power; // 0x3C
+		int spread; // 0x40
+		int duration; // 0x44
+		int persist; // 0x48
+	};
+
+	struct ClusterExplosion {
+		int amount; // 0x3C
+		int dispersion; // 0x40
+		int speed; // 0x44
+		int EjectionAngle; // 0x48
+		int DispersionAngle; // 0x48
+		Explosion explosion; // 0x48
+		int Unknown; // 0x48
+		Sprite Animation; // 0x48 //6
+		int Acceleration; // 0x48
+		int WindFactor; // 0x48
+		int Randomness; // 0x48
+		int Gravity; // 0x48
+		int Unused; // 0x48
+		int Unused2; // 0x48
+		Sound Sound; // 0x48 //4
+		int Spacebar; // 0x48
+		int Action; // 0x48
+		ExplosionAction ExplosionAction; // 0x48 //18
+	};
+
+	struct BounceAction {
+		int BounceFlags; // 0xA8
+		int Bounciness; // 0xAC
+		int Acceleration; // 0xB0
+		int Sound; // 0xB4
+		int Unk1; // 0xB8
+		int Unk2; // 0xBC
+		int Explosionbias; // 0xC0
+		int Power; // 0xC4
+		int Damage; // 0xC8
+		int RandomDamage; // 0xCC
+		int NumberOfBounces; // 0xD0
+		int unknownD4; // 0xD4
+		int unknownD8; // 0xD8
+		int unknownDC; // 0xDC
+		int unknownE0; // 0xE0
+		int unknownE4; // 0xE4
+		int unknownE8; // 0xE8
+		int unknownEC; // 0xEC
+	};
+
+	struct RoamAction {
+		int RoamFlags; // 0xA8
+		int ExplodeFlags; // 0xAC
+		int WalkSpeed; // 0xB0
+		int Unknown; // 0xB4
+		int JumpEdgeAngle; // 0xB8
+		int JumpEdgeVelocity; // 0xBC
+		int JumpEdgeSound; // 0xC0
+		int JumpAngle; // 0xC4
+		int JumpVelocity; // 0xC8
+		int JumpSound; // 0xCC
+		int TerrainOffset; // 0xD0
+		int Fart; // 0xD4
+		int PoisonPower; // 0xD8
+		int FartSprite; // 0xDC
+		int FlySprite; // 0xE0
+		int FlySprite2; // 0xE4
+		int TakingOffSprite; // 0xE8
+		int FlyingSprite; // 0xEC
+	};
+
+	struct HomingAction {
+		int Unused; // 0xA8
+		Sprite Sprite; // 0xAC
+		int type; // 0xB0
+		int delay; // 0xB4
+		int duration; // 0xB8
+		int unknownD4; // 0xD4
+		int unknownD8; // 0xD8
+		int unknownDC; // 0xDC
+		int unknownE0; // 0xE0
+		int unknownE4; // 0xE4
+		int unknownE8; // 0xE8
+		int unknownEC; // 0xEC
+	};
+
+	struct DigAction {
+		int Unk1; // 0xA8
+		int Unk2; // 0xAC
+		int Sound; // 0xB0
+		int JumpingSprite; // 0xB4
+		int Sprite1; // 0xB8
+		int Sprite2; // 0xBC
+		int Sprite3; // 0xC0
+		int unknownC4; // 0xC4
+		int unknownC8; // 0xC8
+		int unknownCC; // 0xCC
+		int unknownD0; // 0xD0
+		int unknownD4; // 0xD4
+		int unknownD8; // 0xD8
+		int unknownDC; // 0xDC
+		int unknownE0; // 0xE0
+		int unknownE4; // 0xE4
+		int unknownE8; // 0xE8
+		int unknownEC; // 0xEC
+	};
+
+
+	struct Launcher {
+		int spritesize; // 0x3C
+		int fixedspeed; // 0x40
+		int makesscream; // 0x44
+		Explosion explosion; // 0x48
+		int unknown5C; // 0x5C
+		Sprite sprite; // 0x60 //6
+		int variablespeed; // 0x78
+		int windfactor; // 0x7C
+		int motionrandomness; // 0x80
+		int gravityfactor; // 0x84
+		int explotioncountdown; // 0x88
+		int explosiontimer; // 0x8C
+		Sound sound; // 0x90 //4
+		int spacetriggered; // 0xA0
+		int explosionactiontype; // 0xA4
+		ExplosionAction explosionaction; //18
+		int explosiontarget; // 0xF0
+		int unused; // 0xF0
+		ClusterExplosion explosiontargetdata; // 0xF0 //47
+	};
+
+	static Launcher* GetLauncherData(WeaponStruct* weap) {
+		//if ((weap.activationtype == ActivationType::Crosshair) && (weap.Param1 == CrosshairType::Launcher) ) {
+		return (Launcher*)&weap->Param2;
+		//}
+		//{
+			//return new CustomWeapons::Launcher();
+		//}
+	}
+
+	static Gun* GetGunData(WeaponStruct weap) {
+		//if ((weap.activationtype == ActivationType::Crosshair) && (weap.Param1 == CrosshairType::Gun)) {
+		return (Gun*)&weap.Param2;
+		//}
+		//{
+			//return new CustomWeapons::Gun();
+		//}
+	}
+
+	static Flamethrower* GetFlamethrowerData(CustomWeapons::WeaponStruct weap) {
+		//if ((weap.activationtype == ActivationType::Crosshair) && (weap.Param1 == CrosshairType::Flamethrower)) {
+		return (Flamethrower*)&weap.Param2;
+		//}
+		//{
+			//return new CustomWeapons::Flamethrower();
+		//}
+	}
+
+	static sol::object GetActionDataAS(Airstrike* weap) {
+		auto* lua = Lua::getInstance().getState()->lua_state();
+			switch (weap->Action) {
+			case AirstrikeAction::Airstrike_Mines:
+				return sol::make_object(lua, (Mine*)(&weap->ActionData));
+			case AirstrikeAction::Airstrike_Launcher:
+				return sol::make_object(lua, (Launcher*)(&weap->ActionData));
+			default:
+				return sol::make_object(lua, nullptr); // or sol::nil if needed
+			}
+	}
+
+
+	static sol::object GetActionData(ClusterExplosion* weap) {
+		auto* lua = Lua::getInstance().getState()->lua_state();
+		switch (weap->Action) {
+		case Action::Action_Roam:
+			return sol::make_object(lua, (RoamAction*)(&weap->ExplosionAction));
+		case Action::Action_Bounce:
+			return sol::make_object(lua, (BounceAction*)(&weap->ExplosionAction));
+		case Action::Action_Dig:
+			return sol::make_object(lua, (DigAction*)(&weap->ExplosionAction));
+		case Action::Action_Home:
+			return sol::make_object(lua, (HomingAction*)(&weap->ExplosionAction));
+		default:
+			return sol::make_object(lua, nullptr); // or sol::nil if needed
+		}
+	}
+
+	static sol::object GetActionDataL(Launcher* weap) {
+		auto* lua = Lua::getInstance().getState()->lua_state();
+		switch (weap->explosionactiontype) {
+		case Action::Action_Roam:
+			return sol::make_object(lua, (RoamAction*)(&weap->explosionaction));
+		case Action::Action_Bounce:
+			return sol::make_object(lua, (BounceAction*)(&weap->explosionaction));
+		case Action::Action_Dig:
+			return sol::make_object(lua, (DigAction*)(&weap->explosionaction));
+		case Action::Action_Home:
+			return sol::make_object(lua, (HomingAction*)(&weap->explosionaction));
+		default:
+			return sol::make_object(lua, nullptr); // or sol::nil if needed
+		}
+	}
+
+	static sol::object GetExplosionTargetL(Launcher* weap) {
+		auto* lua = Lua::getInstance().getState()->lua_state();
+		printf("TARGET: %d", weap->explosiontarget);
+		switch (weap->explosiontarget) {
+		case ExplosionTarget::Target_Clusters:
+			return sol::make_object(lua, (ClusterExplosion*)(&weap->explosiontargetdata));
+		case ExplosionTarget::Target_Fire:
+			return sol::make_object(lua, (FireExplosion*)(&weap->explosiontargetdata));
+		default:
+			return sol::make_object(lua, nullptr); // or sol::nil if needed
+		}
+	}
+
+	
+
+	static sol::object GetExtraData(WeaponStruct* weap) {
+		auto* lua = Lua::getInstance().getState()->lua_state();
+		
+		if (weap->activationtype == ActivationType::Throw) {
+			switch (weap->Param1) {
+			case ThrowType::Throw_Mine:
+				return sol::make_object(lua, (Mine*)(&weap->Param2));
+			case ThrowType::Throw_Launcher:
+				return sol::make_object(lua, (Launcher*) (&weap->Param2));
+			case ThrowType::Throw_Canister:
+				return sol::make_object(lua, (Canister*) (&weap->Param2));
+			default:
+				return sol::make_object(lua, nullptr); // or sol::nil if needed
+			}
+		}
+		else if (weap->activationtype == ActivationType::Crosshair) {
+			switch (weap->Param1) {
+			case CrosshairType::Crosshair_Flamethrower:
+				return sol::make_object(lua, (Flamethrower*)(&weap->Param2));
+			case CrosshairType::Crosshair_Launcher:
+				return sol::make_object(lua, (Launcher*)(&weap->Param2));
+			case CrosshairType::Crosshair_Gun:
+				return sol::make_object(lua, (Gun*)(&weap->Param2));
+			default:
+				return sol::make_object(lua, nullptr); // or sol::nil if needed
+			}
+		}
+		else if (weap->activationtype == ActivationType::Airstrike) {
+			return sol::make_object(lua, (Airstrike*)(&weap->Param1));
+		}
+		else if (weap->activationtype == ActivationType::Spacebar) {
+			switch (weap->activationparam) {
+			case SpaceWeap::Space_Firepunch:
+				return sol::make_object(lua, (FirePunch*)(&weap->Param1));
+			case SpaceWeap::Space_Baseballbat:
+				return sol::make_object(lua, (Bat*)(&weap->Param1));
+			case SpaceWeap::Space_Dragonball:
+				return sol::make_object(lua, (DragonBall*)(&weap->Param1));
+			case SpaceWeap::Space_Kamikaze:
+				return sol::make_object(lua, (Kamikaze*)(&weap->Param1));
+			case SpaceWeap::Space_Suicidebomber:
+				return sol::make_object(lua, (Suicide*)(&weap->Param1));
+			case SpaceWeap::Space_Ninjarope:
+				return sol::make_object(lua, (NinjaRope*)(&weap->Param1));
+			case SpaceWeap::Space_Pneumaticdrill:
+				return sol::make_object(lua, (Drill*)(&weap->Param1));
+			case SpaceWeap::Space_Prod:
+				return sol::make_object(lua, (Prod*)(&weap->Param1));
+			case SpaceWeap::Space_Blowtorch:
+				return sol::make_object(lua, (Blowtorch*)(&weap->Param1));
+			case SpaceWeap::Space_Parachute:
+				return sol::make_object(lua, (Parachute*)(&weap->Param1));
+			case SpaceWeap::Space_Nucleartest:
+				return sol::make_object(lua, (NuclearTest*)(&weap->Param1));
+			case SpaceWeap::Space_Battleaxe:
+				return sol::make_object(lua, (BattleAxe*)(&weap->Param1));
+			case SpaceWeap::Space_Jetpack:
+				return sol::make_object(lua, (JetPack*)(&weap->Param1));
+			case SpaceWeap::Space_Armageddon:
+				return sol::make_object(lua, (Launcher*)(&weap->Param1));
+			default:
+				return sol::make_object(lua, nullptr); // or sol::nil if needed
+			}
+		}
+		return sol::make_object(lua, nullptr); // or sol::nil if needed
+	}
+
 private:
 	inline static int currentWeaponTable;
 
@@ -172,6 +724,11 @@ private:
 	static void hookWeaponPanelUnknown1_patch1();
 	static void hookWeaponPanelDescription_getAmmoDelay_patch1();
 
+	static void setCustomWeaponAmmoOrDelay(int team_id, int weapon_id, int tabletype, int value);
+	static int getCustomWeaponAmmoOrDelay(int team_id, int weapon_id, int tabletype);
+	static void setWeaponAmmoOrDelay(int team_id, int weapon_id, int tabletype, int value);
+	static int getWeaponAmmoOrDelay(int team_id, int weapon_id, int tabletype);
+
 //	static DWORD __stdcall getAmmoAddr_v1(int team_id, int weapon_id, int teaminfo_obj, int tabletype);
 	static DWORD __stdcall getAmmoAddr_v2(int weapon_panel_obj, int weapon_id, int tabletypw);
 
@@ -195,6 +752,7 @@ public:
 	static void onConstructGlobalContext(int a1);
 
 	static int registerCustomWeapon(WeaponStruct weaponStruct, std::string img, std::string name1, std::string name2);
+	static WeaponStruct* getWeaponData(int weapid);
 	static void resetConfig();
 };
 

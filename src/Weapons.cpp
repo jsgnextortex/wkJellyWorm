@@ -3,6 +3,7 @@
 #include "Game.h"
 #include "Hooks.h"
 #include "CustomWeapons.h"
+#include <fstream>
 
 #include "Lua.h"
 #include <sol/sol.hpp>
@@ -72,6 +73,22 @@ int __stdcall Weapons::hookFireWeapon(CTaskWorm *worm) {
 	return retv;
 }
 
+int __stdcall callFireWeapon(CTaskWorm* worm, CustomWeapons::WeaponStruct* weaponstruct, Weapons::WeaponLaunchParams* launchparams) {
+	int retv;
+	int ret = PackageManager::getInstance().handleFireWeapon(worm, weaponstruct, launchparams);
+	if (ret) return ret;
+
+	_asm mov eax, weaponstruct
+	_asm mov ecx, launchparams
+	_asm push worm
+	_asm call origFireWeapon
+	_asm mov retv, eax
+
+	return retv;
+}
+
+#include <winuser.h>
+
 CTaskMissile *(__fastcall *origCreateWeaponProjectile)(CGameTask *This, int EDX, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * weaponLaunchParams);
 CTaskMissile *__fastcall Weapons::hookCreateWeaponProjectile(CGameTask *This, int EDX, WeaponProjectileParams * projectileParams, WeaponLaunchParams * launchParams) {
 	int ret = PackageManager::getInstance().handleCreateWeaponProjectile(This, projectileParams, launchParams);
@@ -79,8 +96,185 @@ CTaskMissile *__fastcall Weapons::hookCreateWeaponProjectile(CGameTask *This, in
 	return origCreateWeaponProjectile(This, EDX, projectileParams, launchParams);
 }
 
+CTaskMissile *(__fastcall *origFireBulletProjectile)(CGameTask *This, int EDX, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams *, CGameTask* This2);
+CTaskMissile *__fastcall hookFireBulletProjectile(CGameTask *This, int EDX, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams, CGameTask* This2) {
+	int ret = PackageManager::getInstance().handleFireBulletProjectile(This, projectileParams, launchParams);
+	if(ret) return 0;
+	//printf("bullat %d %d %d %d %d \n", This, EDX, projectileParams, launchParams, This2);
+	return origFireBulletProjectile(This,  EDX, projectileParams, launchParams, This);
+}
+
+//CTaskMissile* (__fastcall* origFireBullet)(int angle, CTaskWorm* worm, Weapons::WeaponLaunchParams* params);
+//CTaskMissile* __fastcall hookFireBullet( int angle, CTaskWorm* worm, Weapons::WeaponLaunchParams* params) {
+	//printf("fire bullat %d %d %d \n",  angle,worm->wormnumber_dword100, params->unknown10);
+//	return origFireBullet( angle,worm,params);
+//}
+
+
+CTaskMissile* callFireBulletProjectile(CGameTask* This, Weapons::WeaponProjectileParams* projectileParams, Weapons::WeaponLaunchParams* launchParams) {
+	return hookFireBulletProjectile(This,0,  projectileParams, launchParams, This);
+}
+
+
 CTaskMissile* Weapons::callCreateWeaponProjectile(CGameTask * This, WeaponProjectileParams * projectileParams, WeaponLaunchParams * launchParams) {
 	return hookCreateWeaponProjectile(This, 0, projectileParams, launchParams);
+}
+
+
+_HookDefLazy(FireBullet, void, __stdcall, (CTaskWorm* worm, Weapons::WeaponLaunchParams* params)) {
+		//printf("%d %d %d \n", worm, params);
+			return origFireBullet(worm,params);
+}
+
+
+
+
+int (__stdcall* origBullet2Object)(CGameTask* worm, int xpos, int ypos, int angleX, int angleY, int range, int collissionflags);
+int __stdcall  hookBullet2Object(CGameTask* worm, int xpos, int ypos, int angleX
+	, int angleY, int range, int collissionflags) {
+
+
+	//Weapons::WeaponLaunchParams* ebparams;
+	//_asm mov ebparams, ebp
+	//int retv;
+	//
+	//__asm {
+	//	push collissionflags
+	//	push range
+	//	push angleY
+	//	push angleX
+	//	push ypos
+	//	push xpos
+	//	push worm
+	//
+	//	call origBullet2Object
+	//	mov retv, eax
+	//}
+
+
+	//return retv;
+
+	return origBullet2Object(worm, xpos, ypos, angleX
+		, angleY, range, collissionflags);
+}
+
+
+
+/*
+_HookDefLazy(Bullet2Object, int, __stdcall, (CGameTask* worm, int xpos, int ypos, int angleX
+	, int angleY,int range,int collissionflags)) {
+	return origBullet2Object(worm, xpos, ypos, angleX, angleY, range, collissionflags);
+}
+*/
+//returns the distance the bullet needs to stop at, which means that it hit something along the way, otherwise it returns -1. This doesnt account for terrain tho, thats handled separately.
+DWORD addrBullet2Object;
+int calltestcol() {
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	std::unordered_map<int, bool> has;
+	CTask* ret = nullptr;
+	turngame->traverse([&](CTask* obj, const int level) {
+		for (int i = 0; i < level; i++)
+		if ((obj->classtype == ClassType::ClassType_Task_Worm) && (has.find(obj->getAddr()) == has.end())) {
+			has[obj->getAddr()] = true;
+				ret = obj;
+				break;
+		}
+		});
+	CGameTask* worm = (CGameTask*)ret;
+
+	using Fn = int(__stdcall*)(CGameTask*, int, int, int, int, int, int);
+	Fn real = (Fn)addrBullet2Object;
+	return real(worm,worm->posX , worm->posY, 100, 100, 1000, 2);
+}
+
+typedef int(__stdcall CGameTask::* OrigFn)(int, int, int, int, int, int);
+int __stdcall calltestcol2(CGameTask* worm, int xpos, int ypos, int angleX
+	, int angleY, int range, int collissionflags) {
+
+
+	union Cast {
+		void* raw;
+		OrigFn method;
+	} bridge;
+
+	bridge.raw = origBullet2Object;
+
+	// The compiler handles the calling convention perfectly under the hood
+	return (worm->*(bridge.method))(xpos, ypos, angleX, angleY, range, collissionflags);
+}
+
+void dumpBytesToFile(const char* name, void* addr, int len = 64) {
+	std::ofstream file("byte_dump.txt", std::ios::app);
+
+	file << name << " (" << addr << ")\n";
+
+	auto p = reinterpret_cast<unsigned char*>(addr);
+
+	for (int i = 0; i < len; i++) {
+		file << std::hex
+			<< std::setw(2)
+			<< std::setfill('0')
+			<< (int)p[i]
+			<< " ";
+	}
+
+	file << "\n\n";
+}
+
+int __stdcall calltestcol3() {
+
+	dumpBytesToFile("real", (void*)addrBullet2Object);
+	dumpBytesToFile("trampoline", (void*)origBullet2Object);
+	return 1;
+}
+
+
+int __stdcall callBullet2Object(CGameTask* worm, int xpos, int ypos, int angleX
+	, int angleY, int range, int collissionflags) {
+	
+	//int rets;
+	//__asm {	
+	//	mov edx, worm
+	//	mov eax, xpos
+	//	mov ecx, ypos
+	//
+	//	push collissionflags
+	//	push range
+	//	push angleY
+	//	push angleX
+	//	push ypos
+	//	push xpos
+	//	push worm
+	//
+	//	mov ebx, origBullet2Object
+	//	call ebx
+	//	mov rets, eax
+	//}
+	//
+	//return rets;
+	
+
+
+	return origBullet2Object(worm, xpos, ypos, angleX, angleY, range, collissionflags);
+}
+
+void callFireBullet(CTaskWorm* worm, Weapons::WeaponLaunchParams* params) {
+	//pepe->unknown0 = 1;
+	//pepe->unknown4 = 1;
+	//pepe->unknown8 = 89915392;
+	//pepe->unknownC = 89915392;
+	//pepe->unknown10 = -65536;
+	//pepe->unknown14 = 0;
+	//pepe->unknown18 = 62914560;
+	//pepe->unknown1C = 22806528;
+	//pepe->unknown20 = 0;
+	//pepe->unknown24 = 30;
+	//pepe->unknown24 = 3000;
+	// 
+	//_asm mov edi, params
+	//printf("doodoo1");
+	return origFireBullet(worm, params);
 }
 
 int Weapons::install(SignatureScanner &, module) {
@@ -88,28 +282,75 @@ int Weapons::install(SignatureScanner &, module) {
 	DWORD addrWormStartFiringWeapon = Hooks::scanPattern("WormStartFiringWeapon", "\x81\xEC\x00\x00\x00\x00\x53\x55\x56\x8B\xF0\x8B\x46\x44\x57\x8B\xBE\x00\x00\x00\x00\x33\xDB\x83\xE8\x6E", "??????xxxxxxxxxxx????xxxxx", 0x51B7F0);
 	DWORD addrFireWeapon = Hooks::scanPattern("FireWeapon", "\x56\x8B\x74\x24\x08\xC7\x46\x00\x00\x00\x00\x00\x8B\x50\x30\x83\xC2\xFF\x83\xFA\x03\x57\x0F\x87\x00\x00\x00\x00\xFF\x24\x95\x00\x00\x00\x00\x8B\x50\x38\x83\xC2\xFF\x83\xFA\x03", "??????x?????xxxxxxxxxxxx????xxx????xxxxxxxxx", 0x51EE60);
 	DWORD addrCreateWeaponProjectile = Hooks::scanPattern("CreateWeaponProjectile", "\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x51\x56\x8B\xF1\x8B\x46\x2C\x8B\x88\x00\x00\x00\x00\x83\xC1\x07\x81\xF9\x00\x00\x00\x00\x57\x7E\x3C", "???????xx????xxxx????xxxxxxxxx????xxxxx????xxx", 0x51E0F0);
+	DWORD addrFireBulletProjectile = Hooks::scanPattern("FireBulletProjectile", "\x83\xEC\x30\x53\x8B\x5C\x24\x00\x83\x7B\x00\x00", "xxxxxxx?xx??", 0);
+	
+	//DWORD addrFireBullet = Hooks::scanPattern("FireBullet", "\x81\xEC\x20\x04\x00\x00\x53", "xxxx??x", 0x51E0F0);
+	//_ScanLazy(FireBullet, "83ec30538b5c24??837b??00"); //firegunbullet
+	//_HookDefault(FireBullet);
+	
+	//_ScanLazy(Bullet2Object, "83ec148b5424??8b42");
+	//_HookDefault(Bullet2Object);
+
+	addrBullet2Object = Hooks::scanPattern("Bullet2Object", "\x83\xec\x14\x8b\x54\x24\x18\x8b\x42", "xxxxxxxxx", 0);
+	dumpBytesToFile("pre-hook", (void*)addrBullet2Object);
+	Hooks::polyhook("Bullet2Object", addrBullet2Object, (DWORD*)&hookBullet2Object, (DWORD*)&origBullet2Object);
 
 	Hooks::polyhook("WeaponRelease", addrWeaponRelease, (DWORD *) &hookWeaponRelease, (DWORD *) &origWeaponRelease);
 	Hooks::polyhook("WormStartFiring", addrWormStartFiringWeapon, (DWORD *) &hookWormStartFiringWeapon, (DWORD *) &origWormStartFiringWeapon);
 	Hooks::polyhook("FireWeapon", addrFireWeapon, (DWORD *) &hookFireWeapon, (DWORD *) &origFireWeapon);
 	Hooks::polyhook("CreateWeaponProjectile", addrCreateWeaponProjectile, (DWORD *) &hookCreateWeaponProjectile, (DWORD *) &origCreateWeaponProjectile);
+	Hooks::polyhook("FireBulletProjectile", addrFireBulletProjectile, (DWORD *) &hookFireBulletProjectile, (DWORD *) &origFireBulletProjectile);
+	
 
 
 	auto * lua = Lua::getInstance().getState();
+	lua->set_function("FireWeapon", &callFireWeapon);
+	lua->set_function("FireBulletProjectile", &callFireBulletProjectile);
+	//lua->set_function("FireBullet", &callFireBullet);
 	lua->set_function("createWeaponProjectile", &callCreateWeaponProjectile);
+	lua->set_function("getKeyState", &GetKeyState);
+
+	lua->set_function("testcolthree", &calltestcol3);
+	lua->set_function("testcoltwo", &calltestcol2);
+	lua->set_function("testcol", &calltestcol);
+
+	//Bullet2ObjectFn Bullet2Object =
+    //(Bullet2ObjectFn)addrBullet2Object;
+
+
+	using BulletFn = int(__stdcall*)(
+		CGameTask*,
+		int,
+		int,
+		int,
+		int,
+		int,
+		int
+		);
+
+	lua->set_function("checkObjectCollision", static_cast<BulletFn>(&callBullet2Object));
+
 
 	sol::usertype <WeaponLaunchParams> ut = lua->new_usertype <WeaponLaunchParams> ("WeaponLaunchParams");
 	ut["unknown0"] = &WeaponLaunchParams::unknown0;
 	ut["unknown4"] = &WeaponLaunchParams::unknown4;
+	ut["posx"] = &WeaponLaunchParams::unknown8;
 	ut["unknown8"] = &WeaponLaunchParams::unknown8;
+	ut["posy"] = &WeaponLaunchParams::unknownC;
 	ut["unknownC"] = &WeaponLaunchParams::unknownC;
 	ut["unknown10"] = &WeaponLaunchParams::unknown10;
+	ut["offsetx"] = &WeaponLaunchParams::unknown10;
 	ut["unknown14"] = &WeaponLaunchParams::unknown14;
+	ut["offsety"] = &WeaponLaunchParams::unknown14;
 	ut["unknown18"] = &WeaponLaunchParams::unknown18;
 	ut["unknown1C"] = &WeaponLaunchParams::unknown1C;
+	ut["range"] = &WeaponLaunchParams::unknown1C;
 	ut["unknown20"] = &WeaponLaunchParams::unknown20;
+	ut["collisionflag"] = &WeaponLaunchParams::unknown20;
 	ut["unknown24"] = &WeaponLaunchParams::unknown24;
+	ut["offsetx2"] = &WeaponLaunchParams::unknown24;
 	ut["unknown28"] = &WeaponLaunchParams::unknown28;
+	ut["offsety2"] = &WeaponLaunchParams::unknown28;
 
 
 	sol::usertype <WeaponProjectileParams> ut2 = lua->new_usertype <WeaponProjectileParams> ("WeaponProjectileParams");

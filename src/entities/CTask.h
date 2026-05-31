@@ -10,6 +10,8 @@
 class CTask;
 typedef CList<CTask*> CTaskList;
 
+typedef int messagedata[516];
+
 class CTask {
 public:
 	virtual int vtable0(int a2) = 0;
@@ -24,7 +26,7 @@ public:
 	template<typename T> struct CTask_vtableHooks {
 		typedef std::function<int(T* This, int a2)> t_vt0;
 		typedef std::function<int(T* This, int heap)> t_vt4;
-		typedef std::function<int(T* This, CTask * sender, Constants::TaskMessage mtype, size_t size, void * data)> t_vt8;
+		typedef std::function<int(T* This, CTask * sender, Constants::TaskMessage mtype, size_t size, messagedata* data)> t_vt8;
 		typedef std::function<int(T* This, int a2, int a3, int a4)> t_vtC;
 		typedef std::function<int(T* This, int a2, int a3, int a4)> t_vt10;
 		typedef std::function<int(T* This, int a2)> t_vt14;
@@ -91,7 +93,7 @@ public:
 			}
 			return 0;
 		}
-		static int __fastcall hookVtable8(T * This, int EDX, CTask * sender, Constants::TaskMessage mtype, size_t size, void * data) {
+		static int __fastcall hookVtable8(T * This, int EDX, CTask * sender, Constants::TaskMessage mtype, size_t size, messagedata* data) {
 			int ret = 0;
 			for(auto & cb : vtable8_builtin_callbacks) {
 				ret |= cb(This, sender, mtype, size, data);
@@ -189,6 +191,7 @@ public:
 	lua->set_function(#classname "_RegisterCallback_vtable0", &CTask_vtableHooks<classname>::registerCallbackVt0); \
 	lua->set_function(#classname "_RegisterCallback_vtable4", &CTask_vtableHooks<classname>::registerCallbackVt4); \
 	lua->set_function(#classname "_RegisterCallback_vtable8", &CTask_vtableHooks<classname>::registerCallbackVt8); \
+	lua->set_function(#classname "_RegisterCallback", &CTask_vtableHooks<classname>::registerCallbackVt8); \
 	lua->set_function(#classname "_RegisterCallback_vtableC", &CTask_vtableHooks<classname>::registerCallbackVtC); \
 	lua->set_function(#classname "_RegisterCallback_vtable10", &CTask_vtableHooks<classname>::registerCallbackVt10); \
 	lua->set_function(#classname "_RegisterCallback_vtable14", &CTask_vtableHooks<classname>::registerCallbackVt14); \
@@ -208,7 +211,7 @@ public:
 	int classtype; // 0x20
 	int unknown24; // 0x24
 	int unknown28; // 0x28
-	int unknown2C; // 0x2C
+	int unknown2C; // 0x2C //Collision structure?
 
 
 	static int install(SignatureScanner & signatureScanner, module mod);
@@ -218,6 +221,17 @@ public:
 	DWORD getOffset(DWORD offset);
 	void setOffset(DWORD offset, DWORD value);
 	DWORD getAddr();
+
+
+	void traverse(const std::function<void(CTask*, const int level)>& cb, const int level = 0) {
+		cb(this, level);
+		for (auto child : this->children) {
+			if (child) {
+				child->traverse(cb, level + 1);
+			}
+		}
+	}
+
 };
 
 

@@ -6,6 +6,8 @@
 #include "Drawing.h"
 #include "Bitmap.h"
 #include "Renderer.h"
+#include "..\..\src\Constants.h"
+#include <src/packages/PackageManager.h>
 
 
 
@@ -83,11 +85,11 @@ int __stdcall Drawing::hookDrawBitmapOnBitmap(int posX, int posY, int width, int
 
 			srcExtension = BitmapExtension::findBitmapExtension(Src);
 			if (!srcExtension) {
-				printf("hookDrawBitmapOnBitmap: creating Src BitmapExtension: %X %dx%d (rowsize: %d, depth: %d)\n", Src, Src->max_width_dword14, Src->max_height_dword18, Src->rowsize_dword10, Src->bitdepth_dwordC);
+				//printf("hookDrawBitmapOnBitmap: creating Src BitmapExtension: %X %dx%d (rowsize: %d, depth: %d)\n", Src, Src->max_width_dword14, Src->max_height_dword18, Src->rowsize_dword10, Src->bitdepth_dwordC); //commented out because it fucks rendering
 				srcExtension = BitmapExtension::constructBitmapImageExtension(Src);
 			}
 			if (!srcExtension->populated) {
-				printf("hookDrawBitmapOnBitmap: populating Src BitmapExtension: %X %dx%d (rowsize: %d, depth: %d)\n", Src, Src->max_width_dword14, Src->max_height_dword18, Src->rowsize_dword10, Src->bitdepth_dwordC);
+				//printf("hookDrawBitmapOnBitmap: populating Src BitmapExtension: %X %dx%d (rowsize: %d, depth: %d)\n", Src, Src->max_width_dword14, Src->max_height_dword18, Src->rowsize_dword10, Src->bitdepth_dwordC); //commented out because it fucks rendering
 //				auto data = BitmapExtension::convertBitmapImageToGLRGBA(Src, nullptr, (ScreenPalette*)Renderer::addrScreenPalette);
 				auto data = (unsigned char *) Src->data_dword8;
 				BitmapExtension::populateBitmapImageExtension(Src, data);
@@ -100,11 +102,11 @@ int __stdcall Drawing::hookDrawBitmapOnBitmap(int posX, int posY, int width, int
 			dstExtension = BitmapExtension::findBitmapExtension(Dst);
 			if (!drawToScreen && Dst->bitdepth_dwordC == 8) {
 				if (!dstExtension) {
-					printf("hookDrawBitmapOnBitmap: creating Dst BitmapExtension: %X %dx%d (rowsize: %d, depth: %d)\n", Dst, Dst->max_width_dword14, Dst->max_height_dword18, Dst->rowsize_dword10, Dst->bitdepth_dwordC);
+					//printf("hookDrawBitmapOnBitmap: creating Dst BitmapExtension: %X %dx%d (rowsize: %d, depth: %d)\n", Dst, Dst->max_width_dword14, Dst->max_height_dword18, Dst->rowsize_dword10, Dst->bitdepth_dwordC);
 					dstExtension = BitmapExtension::constructBitmapImageExtension(Dst);
 				}
 				if (!dstExtension->populated) {
-					printf("hookDrawBitmapOnBitmap: populating Dst BitmapExtension: %X %dx%d (rowsize: %d, depth: %d)\n", Dst, Dst->max_width_dword14, Dst->max_height_dword18, Dst->rowsize_dword10, Dst->bitdepth_dwordC);
+					//printf("hookDrawBitmapOnBitmap: populating Dst BitmapExtension: %X %dx%d (rowsize: %d, depth: %d)\n", Dst, Dst->max_width_dword14, Dst->max_height_dword18, Dst->rowsize_dword10, Dst->bitdepth_dwordC);
 //					auto data = BitmapExtension::convertBitmapImageToGLRGBA(Dst, nullptr, (ScreenPalette*)Renderer::addrScreenPalette);
 					auto data = (unsigned char *) Dst->data_dword8;
 					BitmapExtension::populateBitmapImageExtension(Dst, data);
@@ -379,6 +381,33 @@ DWORD __fastcall Drawing::hookSwitchScreenPalette(DWORD This, int EDX, DWORD pal
 	return ret;
 }
 
+DWORD(__stdcall* origDrawSpriteLocal)(int layer, int posx, int sprite, int frame);
+DWORD __stdcall hookDrawSpriteLocal(int layer, int posx, int sprite, int frame) {
+	DWORD posy, gamescene, retv;
+	_asm mov posy, eax
+	_asm mov gamescene, ecx
+	int flipFlag = 1 << 18;
+	if (((Constants::wjetfly1 <= sprite) && (Constants::wjetfly4 >= sprite)) || (sprite & flipFlag)) {
+//		printf("drawing flipped %d \n", sprite &~ flipFlag);
+		//sprite = 1;
+	}
+	//sprite |= spriteMask;
+
+	int ret = PackageManager::getInstance().handleDrawSpriteLocal(layer, posx, posy, sprite, frame);
+	if (ret) return ret;
+
+	_asm push frame
+	_asm push sprite
+	_asm push posx
+	_asm push layer
+	_asm mov eax, posy
+	_asm mov ecx, gamescene
+	_asm call origDrawSpriteLocal
+	_asm mov retv, eax
+
+	return retv;
+}
+
 int Drawing::install(SignatureScanner &, module) {
 	DWORD addrDrawLandscape = Hooks::scanPattern("DrawLandscape", "\x55\x8B\xEC\x83\xE4\xF8\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x83\xEC\x30\x53\x56\x57\x8B\xD9\x8B\x4D\x08\x8B\xFA", "??????xxx????xx????xxxx????xxxxxxxxxxxxx", 0x5A2790);
 	DWORD addrDrawBitmapOnBitmap = Hooks::scanPattern("DrawBitmapOnBitmap", "\x55\x8B\xEC\x83\xE4\xF8\x8B\x4D\x10\x8B\x45\x18\x83\xEC\x38\x85\xC9\x53\x57\x0F\x84\x00\x00\x00\x00\x83\x7D\x14\x00\x0F\x84\x00\x00\x00\x00\x8B\x50\x08\x8B\x78\x10\x8B\x46\x20\x8B\x5E\x1C", "??????xxxxxxxxxxxxxxx????xxxxxx????xxxxxxxxxxxx", 0x4F6910);
@@ -390,6 +419,11 @@ int Drawing::install(SignatureScanner &, module) {
 	Hooks::polyhook("DrawLandscape", addrDrawLandscape, (DWORD *) &hookDrawLandscape, (DWORD *) &origDrawLandscape);
 	Hooks::polyhook("RedrawFrontendBitmap", addrRedrawFrontendBitmap, (DWORD *) &hookRedrawFrontendBitmap, (DWORD *) &origRedrawFrontendBitmap);
 	Hooks::polyhook("SwitchScreenPalette", addrSwitchScreenPalette, (DWORD *) &hookSwitchScreenPalette, (DWORD *) &origSwitchScreenPalette);
+
+
+	DWORD origDrawSpriteGlobal = Hooks::scanPattern("DrawSpriteGlobal", "\x8B\x91\x00\x00\x00\x00\x81\xFA\x00\x00\x00\x00\x56\x57\x8B\x7C\x24\x10\x8B\xF0\x7D\x5B\x8B\x01\x83\xC0\xE8\x78\x54\x89\x01\x8D\x44\x08\x04\x89\x84\x91\x00\x00\x00\x00\x8B\x91\x00\x00\x00\x00", "??????xx????xxxxxxxxxxxxxxxxxxxxxxxxxx????xx????", 0x541FE0);
+	DWORD addrDrawSpriteLocal = origDrawSpriteGlobal + (0x541BA0 - 0x541B20);
+	_HookDefault(DrawSpriteLocal);
 
 	return 0;
 }

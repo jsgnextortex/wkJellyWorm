@@ -11,6 +11,7 @@
 #include "../Weapons.h"
 #include "Package.h"
 
+extern std::string schememodule;
 
 class PackageManager {
 private:
@@ -88,7 +89,9 @@ public:
 	static int weaponRelease_t(CGameTask * This, int posX, int posY, int angleX, int angleY);
 	static int wormStartFiringWeapon_t(CTaskWorm * worm);
 	static int fireWeapon_t(CTaskWorm * worm, CustomWeapons::WeaponStruct * weaponStruct, Weapons::WeaponLaunchParams * launchParams);
+	static int drawspritelocal_t(int layer, int posx,int posy, int sprite, int frame);
 	static int createWeaponProjectile_t(CGameTask * This, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams);
+	static int FireBulletProjectile_t(CGameTask * This, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams);
 
 
 	int handleCGameTaskPhysics(int a1, CGameTask * object, int a3);
@@ -103,7 +106,8 @@ public:
 	int handleWormStartFiringWeapon(CTaskWorm * worm);
 	int handleFireWeapon(CTaskWorm * worm, CustomWeapons::WeaponStruct * weaponStruct, Weapons::WeaponLaunchParams * launchParams);
 	int handleCreateWeaponProjectile(CGameTask * This, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams);
-
+	int handleFireBulletProjectile(CGameTask * This, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams);
+	int handleDrawSpriteLocal(int layer, int posx,int posy, int sprite, int frame);
 
 	void clearCallbacks();
 

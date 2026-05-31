@@ -9,8 +9,32 @@
 #include "../Config.h"
 #include "../Lua.h"
 #include <sol/sol.hpp>
+#include <src/entities/gametasks/CTaskMine.h>
+#include <src/entities/tasks/CTaskFire.h>
+#include <src/entities/tasks/CTaskTurnGame.h>
+#include <src/entities/tasks/CTaskSpriteAnimation.h>
+#include <src/entities/tasks/CTaskSmoke.h>
+#include <src/entities/tasks/CTaskSeaBubble.h>
+#include <src/entities/tasks/CTaskScoreBubble.h>
+#include <src/entities/gametasks/CTaskOldWorm.h>
+#include <src/entities/gametasks/CTaskOildrum.h>
+#include <src/entities/gametasks/CTaskLand.h>
+#include <src/entities/tasks/CTaskGass.h>
+#include <src/entities/tasks/CTaskFlame.h>
+#include <src/entities/tasks/CTaskFireBall.h>
+#include <src/entities/tasks/CTaskFilter.h>
+#include <src/entities/tasks/CTaskDirt.h>
+#include <src/entities/gametasks/CTaskCross.h>
+#include <src/entities/gametasks/CTaskCrate.h>
+#include <src/entities/tasks/CTaskCPU.h>
+#include <src/entities/tasks/CTaskCloud.h>
+#include <src/entities/gametasks/CTaskCanister.h>
+#include <src/entities/gametasks/CTaskArrow.h>
+#include <src/entities/tasks/CTaskAirStrike.h>
 
 namespace fs = std::filesystem;
+
+std::string schememodule = "default";
 
 PackageManager::PackageManager() {
 	auto lua = Lua::getInstance().getState();
@@ -23,13 +47,26 @@ PackageManager::PackageManager() {
 	lua->set_function("registerCallback_weaponRelease", &Callbacks<&weaponRelease_t>::registerCallback);
 	lua->set_function("registerCallback_wormStartFiringWeapon", &Callbacks<&wormStartFiringWeapon_t>::registerCallback);
 	lua->set_function("registerCallback_fireWeapon", &Callbacks<&fireWeapon_t>::registerCallback);
+	lua->set_function("registerCallback_drawSpriteLocal", &Callbacks<&drawspritelocal_t>::registerCallback);
 	lua->set_function("registerCallback_createWeaponProjectile", &Callbacks<&createWeaponProjectile_t>::registerCallback);
+	lua->set_function("registerCallback_fireBulletProjectile", &Callbacks<&FireBulletProjectile_t>::registerCallback);
 
 }
 
 void PackageManager::clearCallbacks() {
+
 	Callbacks<&gameGlobalInit_t>::clearCallbacks();
 	Callbacks<&handleCGameTaskPhysics_t>::clearCallbacks();
+	Callbacks<&createExplosion_t>::clearCallbacks();
+	Callbacks<&specialImpact_t>::clearCallbacks();
+	Callbacks<&writeLandRaw_t>::clearCallbacks();
+	Callbacks<&writeLandMaskID_t>::clearCallbacks();
+	Callbacks<&weaponRelease_t>::clearCallbacks();
+	Callbacks<&wormStartFiringWeapon_t>::clearCallbacks();
+	Callbacks<&fireWeapon_t>::clearCallbacks();
+	Callbacks<&drawspritelocal_t>::clearCallbacks();
+	Callbacks<&createWeaponProjectile_t>::clearCallbacks();
+	Callbacks<&FireBulletProjectile_t>::clearCallbacks();
 }
 
 PackageManager &PackageManager::getInstance() {
@@ -100,8 +137,11 @@ void PackageManager::addPackage(std::string path) {
 }
 
 void PackageManager::enablePackage(std::string name, std::string version, bool manual) {
-	if(allversions.find(name) == allversions.end())
-		throw std::runtime_error("Package " + name + " not found");
+	if (allversions.find(name) == allversions.end()) {
+		if (name == "default") { return; }
+		printf("[ERROR] Package %s not found \n", name.c_str());
+		return;
+	}
 	std::shared_ptr<Package> pack = nullptr;
 	if(version == "latest") {
 		pack = getLatestVersion(name);
@@ -114,9 +154,10 @@ void PackageManager::enablePackage(std::string name, std::string version, bool m
 			}
 		}
 	}
-	if(pack == nullptr)
+	if (pack == nullptr) {
 		throw std::runtime_error("Package version " + name + "(" + version + ") not found");
-
+	}
+	printf("Enabling %s \n", name.c_str());
 	enabledPackagesAll[name] = pack;
 	if(manual)
 		enabledPackagesExplicit[name] = pack;
@@ -322,10 +363,38 @@ int PackageManager::handleWriteConfig(nlohmann::json & config) {
 int PackageManager::handleResetConfig() {
 	int ret = Interface<&resetConfig_t>::callAllPackages("resetConfig");
 	clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskFire>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTask>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskAirStrike>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskArrow>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskCanister>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskCloud>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskCPU>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskCrate>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskCross>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskDirt>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskFilter>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskFire>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskFireBall>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskFlame>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskGass>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskLand>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskMine>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskMissile>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskOildrum>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskOldWorm>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskScoreBubble>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskSeaBubble>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskSmoke>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskSpriteAnimation>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskTeam>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskTurnGame>::clearCallbacks();
+	CTask::CTask_vtableHooks<CTaskWorm>::clearCallbacks();
 	enabledPackagesAll.clear();
 	enabledPackagesExplicit.clear();
 	return ret;
 }
+
 
 int PackageManager::handleInitialize() {
 	return Interface<&initialize_t>::callAllPackages("initialize");
@@ -367,6 +436,14 @@ int PackageManager::handleFireWeapon(CTaskWorm *worm, CustomWeapons::WeaponStruc
 	return Callbacks<&fireWeapon_t>::callCallbacks(worm, weaponStruct, launchParams);
 }
 
+int PackageManager::handleDrawSpriteLocal(int layer, int posx,int posy, int sprite, int frame) {
+	return Callbacks<&drawspritelocal_t>::callCallbacks(layer, posx,posy, sprite, frame);
+}
+
 int PackageManager::handleCreateWeaponProjectile(CGameTask *This, Weapons::WeaponProjectileParams *projectileParams, Weapons::WeaponLaunchParams *launchParams) {
 	return Callbacks<&createWeaponProjectile_t>::callCallbacks(This, projectileParams, launchParams);
+}
+
+int PackageManager::handleFireBulletProjectile(CGameTask *This, Weapons::WeaponProjectileParams *projectileParams, Weapons::WeaponLaunchParams *launchParams) {
+	return Callbacks<&FireBulletProjectile_t>::callCallbacks(This, projectileParams, launchParams);
 }

@@ -22,6 +22,15 @@ int __stdcall callOriginalOnChatInput(int a1, char * msg, int a3) {
 	_asm call origOnChatInput
 }
 
+void getObjects2() {
+	auto ddgame = Game::getAddrDDGame();
+	CTask* turngame = *(CTask**)(ddgame + 0x8);
+	turngame->traverse([&](CTask* obj, const int level) {
+		for (int i = 0; i < level; i++) printf("\t");
+	printf("Obj: Type: %d \n", obj->classtype);
+		});
+}
+
 int Chat::onChatInput(int a1, char * msg, int a3) {
 	size_t len = strlen(msg);
 	if(!strcmp(msg, "/test")) {
@@ -63,6 +72,18 @@ int Chat::onChatInput(int a1, char * msg, int a3) {
 	if(!strcmp(msg, "/drawing")) {
 		printf("toggling native renderer");
 		Renderer::toggleNativeDrawing();
+		return 1;
+	}
+	if (!strcmp(msg, "/objects")) {
+		getObjects2();
+		return 1;
+	}
+	std::string s = std::string(msg);
+	if (s._Starts_with("/lua")) {
+		s.replace(0, 4, "");
+		printf("running lua command \n");
+		auto* lua = Lua::getInstance().getState();
+		lua->do_string(msg);
 		return 1;
 	}
 

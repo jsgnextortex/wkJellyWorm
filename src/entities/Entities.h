@@ -8,8 +8,8 @@
 struct SpawnObjectParams {
 	enum Type : int {Mine=1, Oildrum, WeaponCrate, HealthCrate, UtilityCrate, UnknownWinRound, UnknownTriggerGameText};
 	Type type;
-	int unk4;
-	int unk8;
+	int posX;
+	int posY;
 	int unkC;
 	int unk10;
 	int unk14;

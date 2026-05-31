@@ -4,6 +4,8 @@
 #include "../../Lua.h"
 
 #include <sol/sol.hpp>
+#include <src/CustomWeapons.h>
+#include <src/Weapons.h>
 
 
 //int (__fastcall *origCTaskWormHandleMessage)(CTaskWorm *This, DWORD EDX, int x, Constants::TaskMessage y, int a4, int a5);
@@ -16,10 +18,40 @@
 //}
 
 
+void clearConsole() {
+	system("cls");
+}
+
+void(__stdcall* origSelectWeapon)(int This, int updatesprite);
+void hookSelectWeapon(int weaponid, int updatesprite) {
+	//printf("weaponselected: %d %d \n", weaponid, updatesprite);
+	origSelectWeapon(weaponid, updatesprite);
+}
+
+void callSelectWeapon(CTaskWorm* worm,int weaponid, int updatesprite) {
+	_asm mov edi, worm
+	origSelectWeapon(weaponid, updatesprite);
+}
+
+//_HookDefLazy(DisableWeapons, void, __stdcall, ()) { 
+//		return ;
+//}
+
 int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
+	//addrSetWormState =   Hooks::scanPattern("setWormState", "\x55\x8B\xEC\x83\xE4\xF8\x83\xEC\x14\x53\x56\x8B\xD9", "xxxxxxxxxxxx", 0x41BB90);
+	//Hooks::polyhook("setstate", addrSetWormState, (DWORD*)&hookSetWormState, (DWORD*)&origsetwormstate);
+
+	DWORD addrSelectWeapon =   Hooks::scanPattern("SelectWeapon", "\x83\xEC\x20\x83\xBF\x00\x00\x00\x00\x00", "xxxxx?????", 0x50BFB0);
+	Hooks::polyhook("SelectWeapon", addrSelectWeapon, (DWORD*)&hookSelectWeapon, (DWORD*)&origSelectWeapon);
+
 	DWORD addrConstructCTaskWorm =   Hooks::scanPattern("ConstructCTaskWorm", "\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x83\xEC\x14\x8B\x44\x24\x28\x53\x55\x8B\x6C\x24\x2C\x56\x57\x6A\x03\x6A\x02\x50\x55\xE8\x00\x00\x00\x00\x8B\x54\x24\x3C\x8B\x74\x24\x44\x69\xD2\x00\x00\x00\x00", "???????xx????xxxx????xxxxxxxxxxxxxxxxxxxxxx????xxxxxxxxxx????", 0x50BFB0);
 	DWORD * addrCTaskWormVTable = *(DWORD**)(addrConstructCTaskWorm + 0x49);
 //	DWORD addrCTaskWormHandleMessage = *(DWORD*)(addrCTaskWormVTable + 8);
+
+
+	//_ScanLazy(DisableWeapons, "8b48??8b54????69d28e000000");
+	//_HookDefault(DisableWeapons);
+
 
 	CTaskAddVTHooks(CTaskWorm, addrCTaskWormVTable)
 	CGameTaskAddVTHooks(CTaskWorm, addrCTaskWormVTable)
@@ -31,15 +63,22 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	CGameTaskAddLuaVTHooks(CTaskWorm)
 
 	lua->set_function("CTaskWorm_CastCTask", &castCTask<CTaskWorm>);
+	lua->set_function("clearConsole", &clearConsole);
+	lua->set_function("selectWeapon", &callSelectWeapon);
 
 	ut["unknownF0"] = &CTaskWorm::unknownF0;
 	ut["unknownF4"] = &CTaskWorm::unknownF4;
 	ut["unknownF8"] = &CTaskWorm::unknownF8;
 	ut["unknownFC"] = &CTaskWorm::unknownFC;
-	ut["unknown100"] = &CTaskWorm::unknown100;
+	ut["teamnumber"] = &CTaskWorm::unknownFC;
+	ut["unknown100"] = &CTaskWorm::wormnumber_dword100;
+	ut["wormnumber"] = &CTaskWorm::wormnumber_dword100;
 	ut["unknown104"] = &CTaskWorm::unknown104;
+	ut["active"] = &CTaskWorm::unknown104;
 	ut["unknown108"] = &CTaskWorm::unknown108;
+	ut["suspended"] = &CTaskWorm::unknown108;
 	ut["unknown10C"] = &CTaskWorm::unknown10C;
+	ut["color"] = &CTaskWorm::unknown10C;
 	ut["unknown110"] = &CTaskWorm::unknown110;
 	ut["unknown114"] = &CTaskWorm::unknown114;
 	ut["unknown118"] = &CTaskWorm::unknown118;
@@ -61,10 +100,12 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown158"] = &CTaskWorm::unknown158;
 	ut["unknown15C"] = &CTaskWorm::unknown15C;
 	ut["unknown160"] = &CTaskWorm::unknown160;
+	ut["statecounter"] = &CTaskWorm::unknown164;
 	ut["unknown164"] = &CTaskWorm::unknown164;
 	ut["unknown168"] = &CTaskWorm::unknown168;
 	ut["unknown16C"] = &CTaskWorm::unknown16C;
 	ut["unknown170"] = &CTaskWorm::unknown170;
+	ut["selectedweapon"] = &CTaskWorm::unknown170;
 	ut["unknown174"] = &CTaskWorm::unknown174;
 	ut["unknown178"] = &CTaskWorm::unknown178;
 	ut["unknown17C"] = &CTaskWorm::unknown17C;
@@ -79,7 +120,8 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown1A0"] = &CTaskWorm::unknown1A0;
 	ut["unknown1A4"] = &CTaskWorm::unknown1A4;
 	ut["unknown1A8"] = &CTaskWorm::unknown1A8;
-	ut["unknown1AC"] = &CTaskWorm::unknown1AC;
+	ut["facingdirection"] = &CTaskWorm::unknown1A8;
+	ut["tailposition"] = &CTaskWorm::unknown1AC; //used for sprites 1 = body down -1 body up
 	ut["unknown1B0"] = &CTaskWorm::unknown1B0;
 	ut["unknown1B4"] = &CTaskWorm::unknown1B4;
 	ut["unknown1B8"] = &CTaskWorm::unknown1B8;
@@ -129,6 +171,7 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown268"] = &CTaskWorm::unknown268;
 	ut["unknown26C"] = &CTaskWorm::unknown26C;
 	ut["unknown270"] = &CTaskWorm::unknown270;
+	ut["shootingangle"] = &CTaskWorm::unknown270; // 65527 - 0 (65527 up, 0 down)
 	ut["unknown274"] = &CTaskWorm::unknown274;
 	ut["unknown278"] = &CTaskWorm::unknown278;
 	ut["unknown27C"] = &CTaskWorm::unknown27C;
@@ -137,6 +180,7 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown288"] = &CTaskWorm::unknown288;
 	ut["unknown28C"] = &CTaskWorm::unknown28C;
 	ut["unknown290"] = &CTaskWorm::unknown290;
+	ut["canfire"] = &CTaskWorm::unknown294;
 	ut["unknown294"] = &CTaskWorm::unknown294;
 	ut["unknown298"] = &CTaskWorm::unknown298;
 	ut["unknown29C"] = &CTaskWorm::unknown29C;
@@ -192,20 +236,23 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown364"] = &CTaskWorm::unknown364;
 	ut["unknown368"] = &CTaskWorm::unknown368;
 	ut["unknown36C"] = &CTaskWorm::unknown36C;
+	ut["currweapentry"] = &CTaskWorm::unknown36C;
 	ut["unknown370"] = &CTaskWorm::unknown370;
 	ut["unknown374"] = &CTaskWorm::unknown374;
 	ut["unknown378"] = &CTaskWorm::unknown378;
 	ut["unknown37C"] = &CTaskWorm::unknown37C;
 	ut["unknown380"] = &CTaskWorm::unknown380;
+	ut["namearrowslideposY"] = &CTaskWorm::unknown380; //0 no name arrow to 65536 name at normal position, anything over it is below the worm
 	ut["unknown384"] = &CTaskWorm::unknown384;
+	ut["hasnamearrow"] = &CTaskWorm::unknown384; //0 no arrow 65536 to display arrow
 	ut["unknown388"] = &CTaskWorm::unknown388;
 	ut["unknown38C"] = &CTaskWorm::unknown38C;
-	ut["unknown390"] = &CTaskWorm::unknown390;
-	ut["unknown394"] = &CTaskWorm::unknown394;
+	ut["unknown390"] = &CTaskWorm::unknown390; //related to namebox dropdown transition
+	ut["nameboxslideposY"] = &CTaskWorm::unknown394; //0 no name to 65536 name at normal position, anything over it is below the worm
 	ut["unknown398"] = &CTaskWorm::unknown398;
 	ut["unknown39C"] = &CTaskWorm::unknown39C;
 	ut["unknown3A0"] = &CTaskWorm::unknown3A0;
-	ut["unknown3A4"] = &CTaskWorm::unknown3A4;
+	ut["nameboxrefreshtimeout"] = &CTaskWorm::unknown3A4; //time before the box flashes and comes back to remind you that its your turn
 	ut["unknown3A8"] = &CTaskWorm::unknown3A8;
 	ut["unknown3AC"] = &CTaskWorm::unknown3AC;
 	ut["unknown3B0"] = &CTaskWorm::unknown3B0;

@@ -45,6 +45,43 @@
 #include "Hooks.h"
 #include <chrono>
 #include <MinHook.h>
+#include <regex>
+
+
+
+std::string scriptname(const std::string& path) {
+	size_t lastSlash = path.find_last_of("/\\");
+	std::string filename = (lastSlash == std::string::npos) ? path : path.substr(lastSlash + 1);
+	std::regex bracketPattern(R"(\[([^\]]+)\])");
+	std::smatch match;
+
+	if (std::regex_search(filename, match, bracketPattern)) {
+		return match[1]; 
+	}
+	return "";
+}
+
+static inline int(__stdcall* origSetBuiltinScheme)(DWORD a1, int schemeid);
+int __stdcall hookSetBuiltinScheme(DWORD schemestruct, int id) {
+	return origSetBuiltinScheme(schemestruct, id);
+}
+
+static inline int(__stdcall* origSetWscScheme)(DWORD schemestruct, char* path, char flag, bool* out);
+int __stdcall hookSetWscScheme(DWORD schemestruct, char* path, char flag, bool* out) {
+	printf("hookSetWscScheme struct: 0x%X path: %s flag: %d out: 0x%X\n", schemestruct, path, flag, out);
+	std::string script = scriptname(path);
+	if ((script.length() <= 0) && (schememodule != "default")) {
+		schememodule = "default";
+		script = schememodule;
+	}
+	if (script.length() > 0) {
+		schememodule = script;
+		Config::resetConfig();
+		PackageManager::getInstance().enablePackage(script, "latest", true);
+		PackageManager::getInstance().checkDependenciesAdd();
+	}
+	return origSetWscScheme(schemestruct, path, flag, out);
+}
 
 int install() {
 	if(Config::devConsoleEnabled) DevConsole::install();
@@ -102,6 +139,15 @@ int install() {
 	Lua::getInstance();
 
 	PackageManager::getInstance().scanPackages();
+
+
+
+	DWORD addrSetWscScheme = _ScanPattern("SetWscScheme", "\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x81\xEC\x00\x00\x00\x00\x53\x55\x8B\xAC\x24\x00\x00\x00\x00\x56\x8B\xB4\x24\x00\x00\x00\x00\x57\x8D\x4C\x24\x20", "???????xx????xxxx????xx????xxxxx????xxxx????xxxxx");
+	_HookDefault(SetWscScheme);
+	//DWORD addrGetSchemeSettingsFromWam = _ScanPattern("GetSchemeSettingsFromWam", "\x57\x6A\x04\x68\x00\x00\x00\x00\x8B\xF8\xE8\x00\x00\x00\x00\x83\xF8\xFF\x75\x04\x0B\xC0\x5F\xC3\x8B\x47\x0C\x56\x8B\x35\x00\x00\x00\x00\x50\x6A\x00\x68\x00\x00\x00\x00\x68\x00\x00\x00\x00\xFF\xD6", "????????xxx????xxxxxxxxxxxxxxx????xxxx????x????xx");
+	//DWORD addrSetBuiltinScheme = (addrGetSchemeSettingsFromWam + 0xF + *(DWORD*)(addrGetSchemeSettingsFromWam + 0xB));
+	//_HookDefault(SetBuiltinScheme);
+
 	return 0;
 }
 

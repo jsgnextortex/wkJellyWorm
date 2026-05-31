@@ -7,8 +7,32 @@
 #include "renderer/Bitmap.h"
 #include <array>
 #include "sol/sol.hpp"
+#include <time.h>
 
 // offsets refer to WA v.3.8.0
+
+
+
+void CustomWeapons::setCustomWeaponAmmoOrDelay(int team_id, int weapon_id, int tabletype, int value) {
+	if (tabletype == 0) {
+		ammoTable[team_id-1][weapon_id] = value;
+	}
+	else {
+		delayTable[team_id-1][weapon_id] = value;
+	}
+}
+
+int CustomWeapons::getCustomWeaponAmmoOrDelay(int team_id, int weapon_id, int tabletype) {
+	if (tabletype == 0) {
+		return ammoTable[team_id-1][weapon_id];
+	}
+	else {
+		return delayTable[team_id-1][weapon_id];
+	}
+}
+
+
+
 
 void CustomWeapons::onConstructGlobalContext(int a1) {
 	customWeaponsEnabled = weaponStructInjectionList.size() > 0;
@@ -28,7 +52,7 @@ void CustomWeapons::onConstructGlobalContext(int a1) {
 	if(customWeaponsEnabled) {
 		for(int team=0; team < numTeams; team++) {
 			for(int weapon=0; weapon < numAllWeapons; weapon++) {
-				ammoTable[team][weapon] = 10;
+				ammoTable[team][weapon] = 0;
 				delayTable[team][weapon] = 0;
 			}
 		}
@@ -118,6 +142,25 @@ int __stdcall CustomWeapons::hookWeaponPanelLoop(int team, int counter, int row,
 	return weapon_added_count;
 }
 
+
+DWORD* getAmmoTableAddr(int team_id, int weapon_id, int tabletype) { //tabletype 1=delay 0=ammo
+	DWORD addrGameGlobal = Game::getAddrGameGlobal();
+	DWORD weaponpanel = *(DWORD*)(addrGameGlobal + 1352);
+	int offset = tabletype ? 26104 : 25820;
+	return (DWORD*)((*(DWORD*)weaponpanel + 4 * (142 * team_id + weapon_id) + offset));
+}
+
+void CustomWeapons::setWeaponAmmoOrDelay(int team_id, int weapon_id, int tabletype, int value) {
+	if (weapon_id > maxStandardWeapons) {return setCustomWeaponAmmoOrDelay(team_id, weapon_id, tabletype, value);}
+	auto ammoptr = getAmmoTableAddr(team_id - 1, weapon_id, tabletype);
+	*ammoptr = value;
+}
+
+int CustomWeapons::getWeaponAmmoOrDelay(int team_id, int weapon_id, int tabletype) {
+	if (weapon_id > maxStandardWeapons) { return getCustomWeaponAmmoOrDelay(team_id, weapon_id, tabletype); }
+	auto ammoptr = getAmmoTableAddr(team_id - 1, weapon_id, tabletype);
+	return *ammoptr;
+}
 
 DWORD addrPrepareWeaponPanelHookLoopEndEarly;
 void __declspec(naked) hookWeaponPanelLoop_wrapper() {
@@ -652,11 +695,19 @@ void CustomWeapons::printDebugAddrs() {
 	Chat::callShowChatMessage(buff, 6);
 }
 
+CustomWeapons::WeaponStruct* CustomWeapons::getWeaponData(int weaponid) {
+	return &CustomWeapons::weaponTable[weaponid];
+}
 int CustomWeapons::registerCustomWeapon(CustomWeapons::WeaponStruct weaponStruct, std::string img, std::string name1, std::string name2) {
+	if (weaponStructInjectionList.size() == 0) {
+		weaponImgInjectionList.emplace_back(img, 0);
+		weaponNameStorage.emplace_back("INVALID WEAPON", "INVALID WEAPON");
+		weaponStructInjectionList.push_back(weaponStruct);
+	}//dummy weapon to fill in the fucked up vanilla ghost weapon
 	weaponImgInjectionList.emplace_back(img, 0);
 	weaponNameStorage.emplace_back(name1, name2);
 	weaponStructInjectionList.push_back(weaponStruct);
-	int id = maxStandardWeapons + weaponStructInjectionList.size();
+	int id = maxStandardWeapons + weaponStructInjectionList.size() -1;
 	printf("registerCustomWeapon: registered weapon %s:%s id: %d\n", name1.c_str(), name2.c_str(), id);
 	return id;
 }
@@ -670,6 +721,163 @@ void CustomWeapons::resetConfig() {
 	customWeaponsEnabled = 0;
 	numAllWeapons = maxStandardWeapons;
 }
+
+
+void triggerSkipGo() {
+	int param[4] = { 0 };
+	param[0] = 1;
+	CTaskTurnGame* turngame = (CTaskTurnGame*)Game::getAddrTurnGameObject();
+	if (!turngame) return;
+	turngame->vtable8_HandleMessage(turngame, Constants::TaskMessage::TaskMessage_SkipGo, sizeof(param), &param);
+}
+
+void triggerNuclearTest() {
+	int param[4] = { 0 };
+	param[0] = 7;
+	param[1] = 10;
+
+	CTaskTurnGame* turngame = (CTaskTurnGame*)Game::getAddrTurnGameObject();
+	if (!turngame) return;
+	turngame->vtable8_HandleMessage(turngame, Constants::TaskMessage::TaskMessage_NukeBlast, sizeof(param), &param);
+	param[0] = 110; //water rise
+	param[1] = 7;
+	turngame->vtable8_HandleMessage(turngame, Constants::TaskMessage::TaskMessage_RaiseWater, sizeof(param), &param);
+	param[0] = 5; //poison amount
+	param[1] = 0;
+	turngame->vtable8_HandleMessage(turngame, Constants::TaskMessage::TaskMessage_PoisonWorm, sizeof(param), &param);
+}
+
+
+
+int gettime()
+{
+	return time(NULL);
+}
+
+int getNumWeapons() {
+	return CustomWeapons::numAllWeapons;
+}
+
+int issecretoverride[900] = {0};
+
+void setIsSuper(int weaptype, bool value) {
+	issecretoverride[weaptype] = value;
+}
+
+void setupIsSecretOverride() {
+	issecretoverride[10] = 1;
+	issecretoverride[0x13] = 1;
+	issecretoverride[0x1d] = 1;
+	issecretoverride[0x1e] = 1;
+	issecretoverride[0x1f] = 1;
+	issecretoverride[0x24] = 1;
+	issecretoverride[0x29] = 1;
+	issecretoverride[0x2a] = 1;
+	issecretoverride[0x2d] = 1;
+	issecretoverride[0x2e] = 1;
+	issecretoverride[0x31] = 1;
+	issecretoverride[0x32] = 1;
+	issecretoverride[0x33] = 1;
+	issecretoverride[0x36] = 1;
+	issecretoverride[0x37] = 1;
+	issecretoverride[0x38] = 1;
+	issecretoverride[0x3c] = 1;
+	issecretoverride[0x3d] = 1;
+}
+
+_HookDefLazy(IsSecretWeap, bool, __stdcall, (int param_1)) { //tired of getting this shit to hook, so its copypaste from decomp time!!
+	int weaptype = 0;
+	__asm mov weaptype, eax
+	if (issecretoverride[weaptype]) {
+		return issecretoverride[weaptype];
+	}
+	switch (weaptype) {
+	default:
+		return 0;
+	case 0x3b:
+		return param_1;
+	}
+}
+
+bool callIsSecret(int weapid) {
+	__asm push eax
+	__asm mov eax, weapid
+	bool ret = hookIsSecretWeap(weapid);
+	__asm pop eax
+	return ret;
+}
+
+int isutilityoverride[900] = {0};
+
+void setIsUtility(int weaptype, bool value) {
+	isutilityoverride[weaptype] = value;
+}
+
+void setupIsUtilityOverride() {
+	isutilityoverride[62] = 1;
+	isutilityoverride[63] = 1;
+	isutilityoverride[64] = 1;
+	isutilityoverride[65] = 1;
+	isutilityoverride[66] = 1;
+	isutilityoverride[67] = 1;
+	isutilityoverride[68] = 1;
+	isutilityoverride[69] = 1;
+	isutilityoverride[70] = 1;
+}
+
+_HookDefLazy(IsUtility, bool, __stdcall, ()) { //tired of getting this shit to hook, so its copypaste from decomp time!!
+	int weaptype = 0;
+	__asm mov weaptype, eax
+	//if (isutilityoverride[weaptype]) {
+		__asm mov eax, isutilityoverride[weaptype]
+		return isutilityoverride[weaptype] == 1;
+	//}
+}
+
+bool callIsUtility(int weapid) {
+	__asm push eax
+	__asm mov eax, weapid
+	bool ret = hookIsUtility();
+	__asm pop eax
+	return ret;
+}
+
+int issheepoverride[900] = {0};
+
+void setIsSheep(int weaptype, bool value) {
+	issheepoverride[weaptype] = value;
+}
+
+void setupIsSheepOverride() {
+	issheepoverride[0x17] = 1;
+	issheepoverride[0x18] = 1;
+	issheepoverride[0x19] = 1;
+	issheepoverride[0x32] = 1;
+	issheepoverride[5] = 1;
+}
+
+_HookDefLazy(IsSheep, bool, __stdcall, (int param_1)) { //tired of getting this shit to hook, so its copypaste from decomp time!!
+	int weaptype = 0;
+	__asm mov weaptype, eax
+	//if (issheepoverride[weaptype]) {
+	if ((weaptype == 5) && (issheepoverride[weaptype])) {
+		return 0x1e9 < param_1;
+	}
+		__asm mov eax, issheepoverride[weaptype]
+		return issheepoverride[weaptype] == 1;
+	//}
+}
+
+bool callIsSheep(int weapid) {
+	__asm push eax
+	__asm mov eax, weapid
+	bool ret = hookIsSheep(0);
+	__asm pop eax
+	return ret;
+}
+
+
+
 
 
 int CustomWeapons::install(SignatureScanner & signatureScanner, module mod) {
@@ -761,31 +969,78 @@ int CustomWeapons::install(SignatureScanner & signatureScanner, module mod) {
 	Hooks::polyhook("reduceDelayOnTurnStart", addrReduceDelayOnTurnStart, (DWORD *) &hookReduceDelayOnTurnStart, (DWORD *) &origReduceDelayOnTurnStart);
 
 
+	setupIsSecretOverride();
+	_ScanLazy(IsSecretWeap, "83c0f683f833");
+	_HookDefault(IsSecretWeap);
+	
+	setupIsUtilityOverride();
+	_ScanLazy(IsUtility, "83f83e7c??83f8467f??b801??????c3");
+	_HookDefault(IsUtility);
+	
+	setupIsSheepOverride();
+	_ScanLazy(IsSheep, "83c0fb83f82d");
+	_HookDefault(IsSheep);
+	
+	
+
 	auto * lua = Lua::getInstance().getState();
 	sol::usertype <WeaponStruct> ut = lua->new_usertype<WeaponStruct> ("WeaponStruct");
 	lua->set_function("registerCustomWeapon", &registerCustomWeapon);
 
+	lua->set_function("isSuperWeapon", &callIsSecret);
+	lua->set_function("setSuperWeapon", &setIsSuper);
+	lua->set_function("isUtilityWeapon", &callIsUtility);
+	lua->set_function("setUtilityWeapon", &setIsUtility);
+	lua->set_function("isSheepWeapon", &callIsSheep);
+	lua->set_function("setSheepWeapon", &setIsSheep);
+
+	lua->set_function("getNumWeapons", &getNumWeapons);
+
+	lua->set_function("getWeaponData", &getWeaponData); //needs to happen after weaps init
+	lua->set_function("triggerNuclearTest", &triggerNuclearTest);
+	lua->set_function("triggerSkipGo", &triggerSkipGo);
+
+	lua->set_function("setTeamAmmoCustom", &setCustomWeaponAmmoOrDelay);
+	lua->set_function("getTeamAmmoCustom", &getCustomWeaponAmmoOrDelay);
+
+	lua->set_function("setTeamAmmo", &setWeaponAmmoOrDelay);
+	lua->set_function("getTeamAmmo", &getWeaponAmmoOrDelay);
+
+	lua->set_function("getTime", &gettime);
+
 	ut["name1"] = sol::readonly(&WeaponStruct::name1);
 	ut["name2"] = sol::readonly(&WeaponStruct::name2);
 	ut["panelRow"] = &WeaponStruct::panelRow;
-	ut["unknownC"] = &WeaponStruct::unknownC;
-	ut["unknown10"] = &WeaponStruct::unknown10;
-	ut["unknown14"] = &WeaponStruct::unknown14;
-	ut["unknown18"] = &WeaponStruct::unknown18;
-	ut["unknown1C"] = &WeaponStruct::unknown1C;
+	ut["unknownC"] = &WeaponStruct::remembered;
+	ut["unknown10"] = &WeaponStruct::usableincavern;
+	ut["unknown14"] = &WeaponStruct::numberofshots;
+	ut["unknown18"] = &WeaponStruct::endsturn;
+	ut["unknown1C"] = &WeaponStruct::retreattime;
 	ut["unknown20"] = &WeaponStruct::unknown20;
-	ut["unknown24"] = &WeaponStruct::unknown24;
-	ut["unknown28"] = &WeaponStruct::unknown28;
-	ut["unknown2C"] = &WeaponStruct::unknown2C;
-	ut["unknown30"] = &WeaponStruct::unknown30;
-	ut["unknown34"] = &WeaponStruct::unknown34;
-	ut["unknown38"] = &WeaponStruct::unknown38;
-	ut["unknown3C"] = &WeaponStruct::unknown3C;
-	ut["unknown40"] = &WeaponStruct::unknown40;
-	ut["unknown44"] = &WeaponStruct::unknown44;
-	ut["unknown48"] = &WeaponStruct::unknown48;
-	ut["unknown4C"] = &WeaponStruct::unknown4C;
-	ut["unknown50"] = &WeaponStruct::unknown50;
+	ut["unknown24"] = &WeaponStruct::cratechance;
+	ut["unknown28"] = &WeaponStruct::crateammo;
+	ut["unknown2C"] = &WeaponStruct::customdata;
+	ut["unknown30"] = &WeaponStruct::activationtype;
+	ut["unknown34"] = &WeaponStruct::activationparam;
+
+
+	ut["unknown38"] = &WeaponStruct::Param1;
+	ut["Param1"] = &WeaponStruct::Param1;
+	ut["suicidebomberpoison"] = &WeaponStruct::Param1;
+	ut["unknown3C"] = &WeaponStruct::Param2;
+	ut["Param2"] = &WeaponStruct::Param2;
+	ut["kamiexplosionpower"] = &WeaponStruct::Param2;
+	ut["suicidexplosionpower"] = &WeaponStruct::Param2;
+	ut["unknown40"] = &WeaponStruct::Param3;
+	ut["Param3"] = &WeaponStruct::Param3;
+	ut["unknown44"] = &WeaponStruct::Param4;
+	ut["Param4"] = &WeaponStruct::Param4;
+	ut["unknown48"] = &WeaponStruct::Param5;
+	ut["Param5"] = &WeaponStruct::Param5;
+	ut["unknown4C"] = &WeaponStruct::Param6;
+	ut["Param6"] = &WeaponStruct::Param6;
+	ut["unknown50"] = &WeaponStruct::Param7;
+	ut["Param7"] = &WeaponStruct::Param7;
 	ut["unknown54"] = &WeaponStruct::unknown54;
 	ut["unknown58"] = &WeaponStruct::unknown58;
 	ut["unknown5C"] = &WeaponStruct::unknown5C;
@@ -804,6 +1059,7 @@ int CustomWeapons::install(SignatureScanner & signatureScanner, module mod) {
 	ut["unknown90"] = &WeaponStruct::unknown90;
 	ut["unknown94"] = &WeaponStruct::unknown94;
 	ut["unknown98"] = &WeaponStruct::unknown98;
+
 	ut["unknown9C"] = &WeaponStruct::unknown9C;
 	ut["unknownA0"] = &WeaponStruct::unknownA0;
 	ut["unknownA4"] = &WeaponStruct::unknownA4;
@@ -881,6 +1137,273 @@ int CustomWeapons::install(SignatureScanner & signatureScanner, module mod) {
 	ut["unknown1C4"] = &WeaponStruct::unknown1C4;
 	ut["unknown1C8"] = &WeaponStruct::unknown1C8;
 	ut["unknown1CC"] = &WeaponStruct::unknown1CC;
+
+
+
+	ut["remembered"] = &WeaponStruct::remembered;
+	ut["usableincavern"] = &WeaponStruct::usableincavern;
+	ut["numberofshots"] = &WeaponStruct::numberofshots;
+	ut["endsturn"] = &WeaponStruct::endsturn;
+	ut["retreattime"] = &WeaponStruct::retreattime;
+	ut["unknown20"] = &WeaponStruct::unknown20;
+	ut["cratechance"] = &WeaponStruct::cratechance;
+	ut["crateammo"] = &WeaponStruct::crateammo;
+	ut["customdata"] = &WeaponStruct::customdata;
+	ut["activationtype"] = &WeaponStruct::activationtype;
+	ut["activationparam"] = &WeaponStruct::activationparam;
+	ut["herdsize"] = &WeaponStruct::activationparam;
+	ut["airstrikesubtype"] = &WeaponStruct::activationparam;
+	ut["spaceaction"] = &WeaponStruct::activationparam;
+	ut["guntype"] = &WeaponStruct::Param1;
+	ut["crossairtype"] = &WeaponStruct::Param1;
+	ut["planesprite"] = &WeaponStruct::Param1;
+
+
+	ut["asbombscount"] = &WeaponStruct::Param2;
+	ut["asdistancebetweendrops"] = &WeaponStruct::Param3;
+	ut["ashorizontalspeed"] = &WeaponStruct::Param4;
+	ut["assound"] = &WeaponStruct::Param5;
+	ut["astype"] = &WeaponStruct::Param6;
+	ut["skunkpower"] = &WeaponStruct::unknown118;
+
+
+	ut["GetLauncherData"] = &CustomWeapons::GetLauncherData;
+	ut["GetGunData"] = &CustomWeapons::GetGunData;
+	ut["GetFlamethrowerData"] = &CustomWeapons::GetFlamethrowerData;
+	ut["GetExtraData"] = &CustomWeapons::GetExtraData;
+
+	
+	sol::usertype <Launcher> pt = lua->new_usertype<Launcher>("Launcher");
+	pt["spritesize"] = &Launcher::spritesize; // 0x3C
+	pt["fixedspeed"] = &Launcher::fixedspeed; // 0x40
+	pt["makesscream"] = &Launcher::makesscream; // 0x44
+	pt["explosion"] = &Launcher::explosion; // 0x48
+	pt["unknown5C"] = &Launcher::unknown5C; // 0x5C
+	pt["sprite"] = &Launcher::sprite; // 0x60
+	pt["variablespeed"] = &Launcher::variablespeed; // 0x78
+	pt["windfactor"] = &Launcher::windfactor; // 0x7C
+	pt["motionrandomness"] = &Launcher::motionrandomness; // 0x80
+	pt["gravityfactor"] = &Launcher::gravityfactor; // 0x84
+	pt["explosioncountdown"] = &Launcher::explotioncountdown; // 0x88
+	pt["explosiontimer"] = &Launcher::explosiontimer; // 0x8C
+	pt["sound"] = &Launcher::sound; // 0x90
+	pt["spacetriggered"] = &Launcher::spacetriggered; // 0xA0
+	pt["explosionactiontype"] = &Launcher::explosionactiontype; // 0xA4
+	pt["explosionaction"] = &Launcher::explosionaction;
+	pt["explosiontarget"] = &Launcher::explosiontarget; // 0xF0
+	pt["GetAction"] = &CustomWeapons::GetActionDataL;
+	pt["GetExplosionTarget"] = &CustomWeapons::GetExplosionTargetL;
+
+
+	sol::usertype <Sprite> spr = lua->new_usertype<Sprite>("Sprite");
+	spr["spriteid"] = &Sprite::spriteid;
+	spr["animationtype"] = &Sprite::animationtype;
+	spr["trailsprite"] = &Sprite::trailsprite;
+	spr["trailamount"] = &Sprite::trailamount;
+	spr["trailvanishspeed"] = &Sprite::trailvanishspeed;
+	spr["unknown"] = &Sprite::unknown;
+
+
+	sol::usertype <Sound> st = lua->new_usertype<Sound>("Sound");
+	st["soundid"] = &Sound::soundid;
+	st["loop"] = &Sound::loop;
+	st["isexplosion"] = &Sound::isexplosion;
+	st["beforeexplosion"] = &Sound::beforeexplosion;
+	st["delay"] = &Sound::delay;
+
+	sol::usertype <Mine> Mt = lua->new_usertype<Mine>("Mine");
+	Mt["radius"] = &Mine::Radius;
+	Mt["delay"] = &Mine::Delay;
+	Mt["collisionflags"] = &Mine::DetectionFlags; //for detection
+	Mt["fusetime"] = &Mine::FuseTime;
+	Mt["bias"] = &Mine::ExplosionBias;
+	Mt["power"] = &Mine::Power;
+	Mt["damage"] = &Mine::Damage;
+
+	sol::usertype <Airstrike> aat = lua->new_usertype<Airstrike>("Airstrike");
+	aat["PlaneSprite"] = &Airstrike::PlaneSprite; // 0x3C
+	aat["BombsCount"] = &Airstrike::BombsCount; // 0x3C
+	aat["DropsSpacing"] = &Airstrike::DropsSpacing; // 0x3C
+	aat["PlaneSpeed"] = &Airstrike::PlaneSpeed; // 0x3C
+	aat["Sound"] = &Airstrike::Sound; // 0x3C
+	aat["Action"] = &Airstrike::Action; // 0x3C
+	aat["ActionData"] = &Airstrike::ActionData; // 0x3C
+	aat["GetAction"] = &CustomWeapons::GetActionDataAS;
+
+	sol::usertype <Canister> cat = lua->new_usertype<Canister>("Canister");
+	cat["SpriteInactive"] = &Canister::SpriteInactive; // 0x3C
+	cat["SpriteActive"] = &Canister::SpriteActive; // 0x40
+	cat["PoisonAmount"] = &Canister::PoisonAmount; // 0x44
+	cat["Damage"] = &Canister::Damage; // 0x48
+
+	sol::usertype <Gun> scat = lua->new_usertype<Gun>("Gun");
+	scat["bulletcount"] =&Gun::bulletcount; // 0x3C
+	scat["reloadtime"] =&Gun::reloadtime; // 0x40
+	scat["bulletspread"] =&Gun::bulletspread; // 0x44
+	scat["brust"] =&Gun::brust; // 0x48
+	scat["brustspread"] =&Gun::brustspread; // 0x4C
+	scat["explosion"] =&Gun::explosion; // 0x50
+	scat["expeffect"] =&Gun::expeffect; // 0x64
+	scat["range1"] =&Gun::range1; // 0x68
+	scat["range2"] =&Gun::range2; // 0x6C
+	scat["range3"] =&Gun::range3; // 0x70
+
+	sol::usertype <BounceAction> cato = lua->new_usertype<BounceAction>("BounceAction");
+	cato["BounceFlags"] =&BounceAction::BounceFlags; // 0xA8
+	cato["Bounciness"] =&BounceAction::Bounciness; // 0xAC
+	cato["Acceleration"] =&BounceAction::Acceleration; // 0xB0
+	cato["Sound"] =&BounceAction::Sound; // 0xB4
+	cato["Unk1"] =&BounceAction::Unk1; // 0xB8
+	cato["Unk2"] =&BounceAction::Unk2; // 0xBC
+	cato["Explosionbias"] =&BounceAction::Explosionbias; // 0xC0
+	cato["Power"] =&BounceAction::Power; // 0xC4
+	cato["Damage"] =&BounceAction::Damage; // 0xC8
+	cato["RandomDamage"] =&BounceAction::RandomDamage; // 0xCC
+	cato["NumberOfBounces"] =&BounceAction::NumberOfBounces; // 0xD0
+
+	sol::usertype <RoamAction> cawt = lua->new_usertype<RoamAction>("RoamAction");
+		cawt["RoamFlags"] =&RoamAction::RoamFlags; // 0xA8
+		cawt["ExplodeFlags"] =&RoamAction::ExplodeFlags; // 0xAC
+		cawt["WalkSpeed"] =&RoamAction::WalkSpeed; // 0xB0
+		cawt["TerrainTolerance"] =&RoamAction::Unknown; // 0xB4
+		cawt["JumpEdgeAngle"] =&RoamAction::JumpEdgeAngle; // 0xB8
+		cawt["JumpEdgeVelocity"] =&RoamAction::JumpEdgeVelocity; // 0xBC
+		cawt["JumpEdgeSound"] =&RoamAction::JumpEdgeSound; // 0xC0
+		cawt["JumpAngle"] =&RoamAction::JumpAngle; // 0xC4
+		cawt["JumpVelocity"] =&RoamAction::JumpVelocity; // 0xC8
+		cawt["JumpSound"] =&RoamAction::JumpSound; // 0xCC
+		cawt["TerrainOffset"] =&RoamAction::TerrainOffset; // 0xD0
+		cawt["Fart"] =&RoamAction::Fart; // 0xD4
+		cawt["PoisonPower"] =&RoamAction::PoisonPower; // 0xD8
+		cawt["FartSprite"] =&RoamAction::FartSprite; // 0xDC
+		cawt["FlySprite"] =&RoamAction::FlySprite; // 0xE0
+		cawt["FlySprite2"] =&RoamAction::FlySprite2; // 0xE4
+		cawt["TakingOffSprite"] =&RoamAction::TakingOffSprite; // 0xE8
+		cawt["FlyingSprite"] =&RoamAction::FlyingSprite; // 0xEC
+
+		sol::usertype <HomingAction> dd = lua->new_usertype<HomingAction>("HomingAction");
+		dd["Unused"] =&HomingAction::Unused; // 0xA8
+		dd["Sprite"] =&HomingAction::Sprite; // 0xAC
+		dd["type"] =&HomingAction::type; // 0xB0
+		dd["delay"] =&HomingAction::delay; // 0xB4
+		dd["duration"] =&HomingAction::duration; // 0xB8
+
+		sol::usertype <DigAction> ddig = lua->new_usertype<DigAction>("DigAction");
+		ddig["Unk1"] =&DigAction::Unk1; // 0xA8
+		ddig["Unk2"] =&DigAction::Unk2; // 0xAC
+		ddig["Sound"] =&DigAction::Sound; // 0xB0
+		ddig["JumpingSprite"] =&DigAction::JumpingSprite; // 0xB4
+		ddig["Sprite1"] =&DigAction::Sprite1; // 0xB8
+		ddig["Sprite2"] =&DigAction::Sprite2; // 0xBC
+		ddig["Sprite3"] =&DigAction::Sprite3; // 0xC0
+
+		sol::usertype <Flamethrower> dds = lua->new_usertype<Flamethrower>("Flamethrower");
+		dds["fuel"] =&Flamethrower::fuel; // 0x3C
+		dds["fireintensity"] =&Flamethrower::fireintensity; // 0x40
+		dds["fireamount"] =&Flamethrower::fireamount; // 0x44
+		dds["burntime"] =&Flamethrower::burntime; // 0x48
+		dds["persistent"] =&Flamethrower::persistent; // 0x4C
+
+
+		sol::usertype <ClusterExplosion> ddas = lua->new_usertype<ClusterExplosion>("ClusterExplosion");
+		ddas["amount"] = &ClusterExplosion::amount;
+		ddas["dispersion"] = &ClusterExplosion::dispersion;
+		ddas["speed"] = &ClusterExplosion::speed;
+		ddas["EjectionAngle"] = &ClusterExplosion::EjectionAngle;
+		ddas["DispersionAngle"] = &ClusterExplosion::DispersionAngle;
+		ddas["explosion"] = &ClusterExplosion::explosion;
+		ddas["Unknown"] = &ClusterExplosion::Unknown;
+		ddas["Animation"] = &ClusterExplosion::Animation;
+		ddas["Acceleration"] = &ClusterExplosion::Acceleration;
+		ddas["WindFactor"] = &ClusterExplosion::WindFactor;
+		ddas["Randomness"] = &ClusterExplosion::Randomness;
+		ddas["Gravity"] = &ClusterExplosion::Gravity;
+		ddas["Unused"] = &ClusterExplosion::Unused;
+		ddas["Unused2"] = &ClusterExplosion::Unused2;
+		ddas["Sound"] = &ClusterExplosion::Sound;
+		ddas["Spacebar"] = &ClusterExplosion::Spacebar;
+		ddas["Action"] = &ClusterExplosion::Action;
+		ddas["ExplosionAction"] =&ClusterExplosion::ExplosionAction;
+		ddas["GetAction"] = &CustomWeapons::GetActionData;
+
+		sol::usertype <FireExplosion> ddss = lua->new_usertype<FireExplosion>("FireExplosion");
+		ddss["power"] =&FireExplosion::power; // 0x3C
+		ddss["spread"] =&FireExplosion::spread; // 0x40
+		ddss["duration"] =&FireExplosion::duration; // 0x44
+		ddss["persist"] =&FireExplosion::persist; // 0x48
+
+		sol::usertype <DragonBall> db = lua->new_usertype<DragonBall>("DragonBall");
+			db["Sound"] =&DragonBall::Sound; // 0x38
+			db["ImpactSound"] =&DragonBall::ImpactSound; // 0x3C
+			db["Sprite"] =&DragonBall::Sprite; // 0x40
+			db["Damage"] =&DragonBall::Damage; // 0x44
+			db["Angle"] =&DragonBall::Angle; // 0x48
+			db["Force"] =&DragonBall::Force; // 0x4C
+			db["FlyingTime"] =&DragonBall::FlyingTime; // 0x50
+
+		sol::usertype <Kamikaze> km = lua->new_usertype<Kamikaze>("Kamikaze");
+			km["FlyingTime"] =&Kamikaze::FlyingTime; // 0x38
+			km["ExplosionDamage"] =&Kamikaze::ExplosionDamage; // 0x3C
+			km["FireSound"] =&Kamikaze::FireSound; // 0x40
+			km["Damage"] =&Kamikaze::Damage; // 0x44
+			km["ImpactForce"] =&Kamikaze::ImpactForce; // 0x48
+			km["ImpactAngle"] =&Kamikaze::ImpactAngle; // 0x4C
+		
+		sol::usertype <FirePunch> pnch = lua->new_usertype<FirePunch>("FirePunch");
+			pnch["Damage"] =&FirePunch::Damage; // 0x38
+			pnch["Angle"] =&FirePunch::Angle; // 0x3C
+			pnch["Push"] =&FirePunch::Push; // 0x40
+			pnch["Height"] =&FirePunch::Height; // 0x44
+
+		sol::usertype <Drill> fp = lua->new_usertype<Drill>("Drill");
+			fp["Damage"] =&Drill::Damage; // 0x38
+			fp["PushPower"] =&Drill::PushPower; // 0x3C
+			fp["ImpactAngle"] =&Drill::ImpactAngle; // 0x40
+			fp["Duration"] =&Drill::Duration; // 0x44
+
+		sol::usertype <Blowtorch> blw = lua->new_usertype<Blowtorch>("Blowtorch");
+			blw["Damage"] =&Blowtorch::Damage; // 0x38
+			blw["PushPower"] =&Blowtorch::PushPower; // 0x3C
+			blw["ImpactAngle"] =&Blowtorch::ImpactAngle; // 0x40
+			blw["Duration"] =&Blowtorch::Duration; // 0x44
+
+
+			sol::usertype <Prod> prd = lua->new_usertype<Prod>("Prod");		
+			prd["Damage"] =&Prod::Damage; // 0x38
+			prd["PushPower"] =&Prod::PushPower; // 0x3C
+			prd["Angle"] =&Prod::Angle; // 0x40
+		
+
+			sol::usertype <NinjaRope> njr = lua->new_usertype<NinjaRope>("NinjaRope");
+			njr["Shots"] =&NinjaRope::Shots; // 0x38
+			njr["Length"] =&NinjaRope::Length; // 0x3C
+			njr["AngleRestriction"] =&NinjaRope::AngleRestriction; // 0x40
+		
+
+			sol::usertype <Bat> bbb = lua->new_usertype<Bat>("BaseballBat");
+			bbb["Damage"] = &Bat::Damage; // 0x38
+			bbb["PushPower"] = &Bat::PushPower; // 0x3C
+		
+
+			sol::usertype <Suicide> scb = lua->new_usertype<Suicide>("SuicideBomber");
+			scb["Poison"] = &Suicide::Poison; // 0x38
+			scb["Damage"] = &Suicide::Damage; // 0x3C
+
+		sol::usertype <NuclearTest> ntest = lua->new_usertype<NuclearTest>("NuclearTest");
+		ntest["WaterRise"] = &NuclearTest::WaterRise; // 0x38
+		ntest["Poison"] = &NuclearTest::Poison; // 0x3C
+
+		sol::usertype <JetPack> jpa = lua->new_usertype<JetPack>("JetPack");
+		jpa["Fuel"] = &JetPack::Fuel; // 0x38
+
+		sol::usertype <BattleAxe> axe = lua->new_usertype<BattleAxe>("BattleAxe");
+		axe["Percentage"] = &BattleAxe::Percentage; // 0x38
+
+		sol::usertype <Parachute> chute = lua->new_usertype<Parachute>("Parachute");		
+		chute["WindFactor"] = &Parachute::WindFactor; // 0x38
+
+
+
 
 	return 0;
 }

@@ -1,3 +1,4 @@
+#include <map>
 #ifndef WKJELLYWORM_CONSTANTS_H
 #define WKJELLYWORM_CONSTANTS_H
 
@@ -1059,5 +1060,84 @@ namespace Constants {
 		wbz5lnkd = 696
 	};
 }
+
+enum ClassType {
+	ClassType_None = 0,
+	ClassType_Task,
+	ClassType_GameTask,
+	ClassType_GameCollisionTask,
+	ClassType_Task_Control,
+	ClassType_Task_Game,
+	ClassType_Task_TurnGame,
+	ClassType_Task_Filter,
+	ClassType_Task_Mine,
+	ClassType_Task_Canister,
+	ClassType_Task_Team,
+	ClassType_Task_Missile,
+	ClassType_Task_Arrow,
+	ClassType_Task_Animation,
+	ClassType_Task_Dirt,
+	ClassType_Task_Crate,
+	ClassType_Task_Flame,
+	ClassType_Task_AirStrike,
+	ClassType_Task_Worm,
+	ClassType_Task_OldWorm,
+	ClassType_Task_Drill,
+	ClassType_Task_Cross,
+	ClassType_Task_Smoke,
+	ClassType_Task_Cloud,
+	ClassType_Task_Fire,
+	ClassType_Task_Gass,
+	ClassType_Task_FireBall,
+	ClassType_Task_SeaBubble,
+	ClassType_Task_Land,
+	ClassType_Task_ScoreBubble,
+	ClassType_Task_OilDrum,
+	ClassType_Task_CPU,
+	ClassType_SpriteAnimation,
+	ClassType_CollisionManager,
+	ClassType_MAX
+};
+
+/*
+static const inline std::map<Constants::ClassType, std::string> CTtoSTR{
+			{ClassType::ClassType_None, "none"},
+			{ClassType::ClassType_Task, "task"},
+			{ClassType::ClassType_GameTask, "gametask"},
+			{ClassType::ClassType_GameCollisionTask, "gamecollisiontask"},
+			{ClassType::ClassType_Task_Control, "control"},
+			{ClassType::ClassType_Task_Game, "game"},
+			{ClassType::ClassType_Task_TurnGame, "turngame"},
+			{ClassType::ClassType_Task_Filter, "filter"},
+			{ClassType::ClassType_MAX, "max"},
+
+			{ClassType::ClassType_Task_Mine, "mine"},
+			{ClassType::ClassType_Task_Canister, "canister"},
+			{ClassType::ClassType_Task_Team, "team"},
+			{ClassType::ClassType_Task_Missile, "missile"},
+			{ClassType::ClassType_Task_Arrow, "arrow"},
+			{ClassType::ClassType_Task_Animation, "animation"},
+			{ClassType::ClassType_Task_Dirt, "dirt"},
+			{ClassType::ClassType_Task_Crate, "crate"},
+			{ClassType::ClassType_Task_Flame, "flame"},
+			{ClassType::ClassType_Task_AirStrike, "airstrike"},
+			{ClassType::ClassType_Task_Worm, "worm"},
+			{ClassType::ClassType_Task_OldWorm, "oldworm"},
+			{ClassType::ClassType_Task_Drill, "drill"},
+			{ClassType::ClassType_Task_Cross, "cross"},
+			{ClassType::ClassType_Task_Smoke, "smoke"},
+			{ClassType::ClassType_Task_Cloud, "cloud"},
+			{ClassType::ClassType_Task_Fire, "fire"},
+			{ClassType::ClassType_Task_Gass, "gas"},
+			{ClassType::ClassType_Task_FireBall, "fireball"},
+			{ClassType::ClassType_Task_SeaBubble, "seabubble"},
+			{ClassType::ClassType_Task_Land, "land"},
+			{ClassType::ClassType_Task_ScoreBubble, "score"},
+			{ClassType::ClassType_Task_OilDrum, "oildrum"},
+			{ClassType::ClassType_Task_CPU, "cpu"},
+			{ClassType::ClassType_SpriteAnimation, "sprite"},
+			{ClassType::ClassType_CollisionManager, "collision"},
+};
+*/
 
 #endif //WKJELLYWORM_CONSTANTS_H

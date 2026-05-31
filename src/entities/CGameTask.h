@@ -1,8 +1,9 @@
 #ifndef WKJELLYWORM_CGAMETASK_H
 #define WKJELLYWORM_CGAMETASK_H
 
-
+#include "../WaLibc.h"
 #include "CTask.h"
+#include <src/Sprites.h>
 
 class CGameTask : public CTask {
 public:
@@ -266,6 +267,10 @@ public:
 		return (T*)task;
 	}
 
+	static void freeCGameTask(CTask* task) {
+		WaLibc::waFree(task);
+	}
+
 #define CGameTaskAddVTHooks(classname, vtname) \
 	Hooks::hookVtable(#classname, 0x1C, (DWORD)&vtname[7], (DWORD)&CGameTask_vtableHooks<classname>::hookVtable1C, &CGameTask_vtableHooks<classname>::vtable_original[0]); \
 	Hooks::hookVtable(#classname, 0x20, (DWORD)&vtname[8], (DWORD)&CGameTask_vtableHooks<classname>::hookVtable20, &CGameTask_vtableHooks<classname>::vtable_original[1]); \
@@ -293,10 +298,11 @@ public:
 	lua->set_function(#classname "_RegisterCallback_vtable40", &CGameTask_vtableHooks<classname>::registerCallbackVt40); \
 	lua->set_function(#classname "_RegisterCallback_vtable44", &CGameTask_vtableHooks<classname>::registerCallbackVt44); \
 	lua->set_function(#classname "_RegisterCallback_vtable48", &CGameTask_vtableHooks<classname>::registerCallbackVt48); \
-	lua->set_function(#classname "_CastCGameTask", &castCGameTask<classname>);
+	lua->set_function(#classname "_CastCGameTask", &castCGameTask<classname>); \
+	lua->set_function(#classname "_FreeCGameTask", &freeCGameTask);
 
-	int unknown30; // 0x30
-	int unknown34; // 0x34
+	int collisionstate; // 0x30
+	int collisionflags; // 0x34
 	int unknown38; // 0x38
 	int unknown3C; // 0x3C
 	int unknown40; // 0x40
@@ -305,9 +311,9 @@ public:
 	int unknown4C; // 0x4C
 	int unknown50; // 0x50
 	int unknown54; // 0x54
-	int unknown58; // 0x58
-	int unknown5C; // 0x5C
-	int unknown60; // 0x60
+	int airspeedmult; // 0x58
+	int windfactor; // 0x5C
+	int gravityfactor; // 0x60
 	int unknown64; // 0x64
 	int unknown68; // 0x68
 	int unknown6C; // 0x6C
@@ -325,18 +331,18 @@ public:
 	int unknown9C; // 0x9C
 	int unknownA0; // 0xA0
 	int unknownA4; // 0xA4
-	int unknownA8; // 0xA8
+	int waterskimfactor; // 0xA8
 	int unknownAC; // 0xAC
-	int unknownB0; // 0xB0
+	int underwater; // 0xB0
 	int unknownB4; // 0xB4
-	int unknownB8; // 0xB8
-	int unknownBC; // 0xBC
-	int unknownC0; // 0xC0
-	int unknownC4; // 0xC4
-	int unknownC8; // 0xC8
+	int airborne; // 0xB8
+	int ropeattached; // 0xBC
+	int ropeanchorX; // 0xC0
+	int ropeanchorY; // 0xC4
+	int unknownrope; // 0xC8
 	int unknownCC; // 0xCC
-	int unknownD0; // 0xD0
-	int unknownD4; // 0xD4
+	int numberofropesegments; // 0xD0
+	int unkfilterclouds; // 0xD4
 	int unknownD8; // 0xD8
 	int unknownDC; // 0xDC
 	int unknownE0; // 0xE0

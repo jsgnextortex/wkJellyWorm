@@ -2,6 +2,97 @@
 #include "../../Lua.h"
 #include <sol/sol.hpp>
 #include "../../Hooks.h"
+#include <src/Game.h>
+
+
+
+
+
+int GetNumberOWorms(int teamid) {
+		DWORD addrGameGlobal = Game::getAddrGameGlobal();
+		DWORD ddmain = *(DWORD*)(addrGameGlobal + 0x24);
+		DWORD teamdata = ddmain + 0x450 + (teamid - 1) * 0xBB8;
+		char ownerId = *(char*)teamdata;
+		std::string owner;
+		if (ownerId >= 0) {
+			owner = (char*)(ddmain + 4 + 0x50 * ownerId);
+		}
+		DWORD totalhp = 0;
+		DWORD addr = addrGameGlobal + 0x4188 + 1308 * teamid;
+		for (int i = 0; i < 8; i++) {
+			if (*(WORD*)addr > 0) {
+				totalhp += 1;  //*(WORD*)addr;
+			}
+			addr += 156;
+		}
+		//int wins = *(unsigned char*)(teamdata + 5);
+		return totalhp;
+}
+
+void CrawlNPrint(int addr,int len,int size= 4) {
+	for (int i = 0; i < len; i++) {
+		int val = *(WORD*)(addr + (i * size));
+		if ((val > 0)) {
+			printf("%d: %d \n", i, val);
+		}
+	}
+}
+
+int GetUtilities(int teamid) {
+	DWORD addrGameGlobal = Game::getAddrGameGlobal();
+	//printf("util: %d \n", *(int*)(addrGameGlobal + 0x4188 + (1308 * (teamid - 1)) + 2492));
+	return *(int*)(addrGameGlobal + 0x4188 + (1308 * (teamid - 1)) + 2492);
+}
+
+void SetUtilities(int teamid,int util) {
+	DWORD addrGameGlobal = Game::getAddrGameGlobal();
+	*(int*)(addrGameGlobal + 0x4188 + (1308 * (teamid - 1)) + 2492) = util;
+}
+
+int GetWormHp(int teamid, int wormid) {
+		DWORD addrGameGlobal = Game::getAddrGameGlobal();
+		DWORD ddmain = *(DWORD*)(addrGameGlobal + 0x24);
+		DWORD teamdata = ddmain + 0x450 + (teamid - 1) * 0xBB8;
+		char ownerId = *(char*)teamdata;
+		std::string owner;
+		if (ownerId >= 0) {
+			owner = (char*)(ddmain + 4 + 0x50 * ownerId);
+		}
+		//CrawlNPrint(addrGameGlobal + 0x4188 , 1308);
+		DWORD addr = addrGameGlobal + 0x4188 + 1308 * teamid; //gamedb structure?
+		for (int i = 0; i < 8; i++) {
+			if (i == (wormid -1)) {
+				return *(WORD*)addr;
+			}
+			addr += 156;
+		}
+		return 0;
+}
+
+int AddWormHp(int teamid, int wormid,int amount) {
+	DWORD addrGameGlobal = Game::getAddrGameGlobal();
+	DWORD ddmain = *(DWORD*)(addrGameGlobal + 0x24);
+	DWORD teamdata = ddmain + 0x450 + (teamid - 1) * 0xBB8;
+	char ownerId = *(char*)teamdata;
+	std::string owner;
+	if (ownerId >= 0) {
+		owner = (char*)(ddmain + 4 + 0x50 * ownerId);
+	}
+	//CrawlNPrint(addrGameGlobal + 0x4188 , 1308);
+	DWORD addr = addrGameGlobal + 0x4188 + 1308 * teamid; //gamedb structure?
+	for (int i = 0; i < 8; i++) {
+		if (i == (wormid - 1)) {
+			*(int*)(addr) += amount;
+			return *(WORD*)addr;
+		}
+		addr += 156;
+	}
+	return 0;
+}
+
+
+
+
 
 int CTaskTeam::install(SignatureScanner &signatureScanner, module mod) {
 	DWORD addrConstructCTaskTeam =   Hooks::scanPattern("ConstructCTaskTeam", "\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x83\xEC\x08\x8B\x44\x24\x1C\x8B\x48\x2C\x53\x55\x56\x8B\x74\x24\x24\x57\x51\x50\x56\xE8\x00\x00\x00\x00\x8B\x7C\x24\x30\x8B\x54\x24\x34\x33\xDB", "???????xx????xxxx????xxxxxxxxxxxxxxxxxxxxxx????xxxxxxxxxx", 0x555BB0);
@@ -12,15 +103,24 @@ int CTaskTeam::install(SignatureScanner &signatureScanner, module mod) {
 	auto * lua = Lua::getInstance().getState();
 	sol::usertype <CTaskTeam> ut = lua->new_usertype <CTaskTeam> ("CTaskTeam", sol::base_classes, sol::bases<CTask>());
 
+
+	lua->set_function("getNumberOfWorms", &GetNumberOWorms);
+	lua->set_function("getWormHp", &GetWormHp);
+	lua->set_function("addWormHp", &AddWormHp);
+	lua->set_function("getTeamUtils", &GetUtilities);
+	lua->set_function("setTeamUtils", &SetUtilities);
+
 	CTaskAddLuaVTHooks(CTaskTeam)
 
 	ut["unknown30"] = &CTaskTeam::unknown30;
 	ut["unknown34"] = &CTaskTeam::unknown34;
 	ut["team_number_dword38"] = &CTaskTeam::team_number_dword38;
 	ut["unknown3C"] = &CTaskTeam::unknown3C;
+	ut["active"] = &CTaskTeam::unknown3C;
 	ut["unknown40"] = &CTaskTeam::unknown40;
 	ut["unknown44"] = &CTaskTeam::unknown44;
 	ut["unknown48"] = &CTaskTeam::unknown48;
+	ut["currwormnumber"] = &CTaskTeam::unknown48;
 	ut["unknown4C"] = &CTaskTeam::unknown4C;
 	ut["unknown50"] = &CTaskTeam::unknown50;
 	ut["unknown54"] = &CTaskTeam::unknown54;
@@ -35,6 +135,7 @@ int CTaskTeam::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown78"] = &CTaskTeam::unknown78;
 	ut["unknown7C"] = &CTaskTeam::unknown7C;
 	ut["unknown80"] = &CTaskTeam::unknown80;
+	ut["weaponsenabled"] = &CTaskTeam::unknown80;
 	ut["unknown84"] = &CTaskTeam::unknown84;
 	ut["unknown88"] = &CTaskTeam::unknown88;
 	ut["unknown8C"] = &CTaskTeam::unknown8C;
@@ -258,6 +359,7 @@ int CTaskTeam::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown3F4"] = &CTaskTeam::unknown3F4;
 	ut["unknown3F8"] = &CTaskTeam::unknown3F8;
 	ut["unknown3FC"] = &CTaskTeam::unknown3FC;
+	ut["controllable"] = &CTaskTeam::unknown3FC;
 	ut["unknown400"] = &CTaskTeam::unknown400;
 	ut["unknown404"] = &CTaskTeam::unknown404;
 	ut["unknown408"] = &CTaskTeam::unknown408;
@@ -273,6 +375,7 @@ int CTaskTeam::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown430"] = &CTaskTeam::unknown430;
 	ut["unknown434"] = &CTaskTeam::unknown434;
 	ut["unknown438"] = &CTaskTeam::unknown438;
+	ut["selectedweapon"] = &CTaskTeam::unknown438;
 	ut["unknown43C"] = &CTaskTeam::unknown43C;
 	ut["unknown440"] = &CTaskTeam::unknown440;
 	ut["unknown444"] = &CTaskTeam::unknown444;

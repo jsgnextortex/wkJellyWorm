@@ -1,0 +1,262 @@
+﻿  ExeFile.cpp
+  ExeFile_WIN32.cpp
+  Memory_WIN32.cpp
+  PatternScanner.cpp
+D:\GitHub\wkJellyWorm\lib\hacklib\PatternScanner.h(28,32): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\lib\hacklib\PatternScanner.cpp(231,12): warning C4477: 'printf' : format string '%X' requires an argument of type 'unsigned int', but variadic argument 1 has type 'const uintptr_t'
+D:\GitHub\wkJellyWorm\lib\hacklib\PatternScanner.cpp(231,12): message : consider using '%llX' in the format string
+D:\GitHub\wkJellyWorm\lib\hacklib\PatternScanner.cpp(231,12): message : consider using '%IX' in the format string
+D:\GitHub\wkJellyWorm\lib\hacklib\PatternScanner.cpp(231,12): message : consider using '%I64X' in the format string
+D:\GitHub\wkJellyWorm\lib\hacklib\PatternScanner.cpp(231,12): warning C4477: 'printf' : format string '%X' requires an argument of type 'unsigned int', but variadic argument 2 has type 'const size_t'
+D:\GitHub\wkJellyWorm\lib\hacklib\PatternScanner.cpp(231,12): message : consider using '%zX' in the format string
+  CMakeCXXCompilerId.cpp
+  git.cc
+D:\GitHub\wkJellyWorm\out\build\x64-debug\git.cc(1,10): fatal  error C1083: Cannot open include file: 'git.h': No such file or directory
+  Chat.cpp
+D:\GitHub\wkJellyWorm\src\Chat.cpp(1,10): fatal  error C1083: Cannot open include file: 'MinHook.h': No such file or directory
+  Config.cpp
+D:\GitHub\wkJellyWorm\src\Config.h(4,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CustomWeapons.cpp
+D:\GitHub\wkJellyWorm\src\CustomWeapons.cpp(1,10): fatal  error C1083: Cannot open include file: 'MinHook.h': No such file or directory
+  DevConsole.cpp
+  dllmain.cpp
+D:\GitHub\wkJellyWorm\src\dllmain.cpp(2,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CGameTask.cpp
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTask.cpp
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskArrow.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CTaskCanister.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CTaskCrate.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CTaskCross.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CTaskLand.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CTaskMine.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CTaskMissile.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Generating Code...
+  Compiling...
+  CTaskOildrum.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CTaskOldWorm.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  CTaskWorm.cpp
+D:\GitHub\wkJellyWorm\src\Hooks.h(12,10): fatal  error C1083: Cannot open include file: 'polyhook2/Detour/x86Detour.hpp': No such file or directory
+  CTaskAirStrike.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskCloud.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskCPU.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskDirt.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskFilter.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskFire.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskFireBall.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskFlame.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskGass.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskScoreBubble.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskSeaBubble.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskSmoke.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskSpriteAnimation.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskTeam.cpp
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(36,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(174,3): message : see reference to class template instantiation 'CTask::CTask_vtableHooks<T>' being compiled
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(37,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(38,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(39,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(40,36): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(41,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(42,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(43,37): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\entities\CTask.h(45,42): error C7525: inline variables require at least '/std:c++17'
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  CTaskTurnGame.cpp
+D:\GitHub\wkJellyWorm\src\Config.h(4,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Explosions.cpp
+D:\GitHub\wkJellyWorm\src\Explosions.h(5,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Game.cpp
+D:\GitHub\wkJellyWorm\src\Game.h(4,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Generating Code...
+  Compiling...
+  Hooks.cpp
+D:\GitHub\wkJellyWorm\src\Hooks.cpp(3,10): fatal  error C1083: Cannot open include file: 'lib/hacklib/PatternScanner.h': No such file or directory
+  Landscape.cpp
+D:\GitHub\wkJellyWorm\src\Landscape.cpp(1,10): fatal  error C1083: Cannot open include file: 'MinHook.h': No such file or directory
+  Lobby.cpp
+D:\GitHub\wkJellyWorm\src\Lobby.h(4,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Lua.cpp
+D:\GitHub\wkJellyWorm\src\Lua.h(4,10): fatal  error C1083: Cannot open include file: 'sol/forward.hpp': No such file or directory
+  Objects.cpp
+D:\GitHub\wkJellyWorm\src\Game.h(4,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Package.cpp
+D:\GitHub\wkJellyWorm\src\packages\Package.h(7,10): fatal  error C1083: Cannot open include file: 'json.hpp': No such file or directory
+  PackageManager.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Packets.cpp
+D:\GitHub\wkJellyWorm\src\Packets.cpp(1,10): fatal  error C1083: Cannot open include file: 'MinHook.h': No such file or directory
+  Bitmap.cpp
+D:\GitHub\wkJellyWorm\src\renderer\Bitmap.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  BitmapExtension.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Drawing.cpp
+D:\GitHub\wkJellyWorm\src\Hooks.h(12,10): fatal  error C1083: Cannot open include file: 'polyhook2/Detour/x86Detour.hpp': No such file or directory
+  Palette.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Renderer.cpp
+D:\GitHub\wkJellyWorm\src\renderer\Renderer.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Sounds.cpp
+D:\GitHub\wkJellyWorm\src\Sounds.h(4,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Sprites.cpp
+D:\GitHub\wkJellyWorm\src\Sprites.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Utils.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  WaLibc.cpp
+D:\GitHub\wkJellyWorm\src\WaLibc.h(6,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Weapons.cpp
+D:\GitHub\wkJellyWorm\src\Weapons.h(5,10): fatal  error C1083: Cannot open include file: 'sigscanner.h': No such file or directory
+  Generating Code...

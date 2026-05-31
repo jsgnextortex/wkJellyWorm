@@ -38,11 +38,16 @@ int __stdcall Game::hookConstructGlobalContext(int a1) {
 }
 
 int (__fastcall *origDestroyGlobalContext)(int This, int EDX);
-int __fastcall Game::hookDestroyGlobalContext(int This, int EDX) {
+int __fastcall Game::hookDestroyGlobalContext(int This, int EDX) { //game close (not menu game)
 	CustomWeapons::onDestroyGlobalContext();
 	int ret = origDestroyGlobalContext(This, EDX);
 
 	addrDDDisplay = addrDSSound = addrDDKeyboard = addrDDMouse = addrWavCDRom = addrWSGameNet = addrDDGame = 0;
+
+	Config::resetConfig();
+	PackageManager::getInstance().enablePackage(schememodule, "latest", true);
+	PackageManager::getInstance().checkDependenciesAdd();
+
 	return ret;
 }
 
@@ -82,6 +87,36 @@ DWORD __stdcall Game::hookConstructDDGameWrapper(DWORD DD_Game_a2, DWORD DD_Disp
 	return retv;
 }
 
+void hookKeyCodesC(char key) {
+	static DWORD state = 1;
+	if (state == 0) state++;
+	static int count = 0;
+	printf("Key:%c \n", key);
+	count++;
+	if (key == 'W' || count > 15) { state = 0x996EE72E; count = 0; }
+	state = 0x13449601 * (state + key + 0x42686FCD);
+	if (state == 0xDADB968B) {
+		std::string msg;
+	}
+}
+
+DWORD origKeyCodes;
+DWORD __stdcall hookKeyCodes() {
+	DWORD a2, retv;
+	unsigned char a1;
+	_asm mov a1, al
+	_asm mov a2, ecx
+
+	_asm mov al, a1
+	_asm mov ecx, a2
+	_asm call origKeyCodes
+	_asm mov retv, eax
+
+	hookKeyCodesC(a1);
+
+	return retv;
+}
+
 
 int Game::install(SignatureScanner & signatureScanner, module mod) {
 	DWORD addrConstructGlobalContext =  Hooks::scanPattern("ConstructGlobalContext", "\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x83\xEC\x24\x53\x55\x8B\x6C\x24\x3C\x8B\x85\x00\x00\x00\x00\x8B\x48\x24", "???????xx????xxxx????xxxxxxxxxxx????xxx", 0x526500);
@@ -94,6 +129,11 @@ int Game::install(SignatureScanner & signatureScanner, module mod) {
 	Hooks::polyhook("constructGlobalContext", addrConstructGlobalContext, (DWORD *) &hookConstructGlobalContext, (DWORD *) &origConstructGlobalContext);
 	Hooks::polyhook("destroyGlobalContext", addrDestroyGlobalContext, (DWORD *) &hookDestroyGlobalContext, (DWORD *) &origDestroyGlobalContext);
 	Hooks::polyhook("ConstructDDGameWrapper", addrConstructDDGameWrapper, (DWORD *) &hookConstructDDGameWrapper, (DWORD *) &origConstructDDGameWrapper);
+
+
+	DWORD addrKeyCodes = Hooks::scanPattern("KeyCodes", "\x0F\xBE\xC0\x05\x00\x00\x00\x00\x69\xC0\x00\x00\x00\x00\x3D\x00\x00\x00\x00\x0F\x87\x00\x00\x00\x00\x0F\x84\x00\x00\x00\x00\x3D\x00\x00\x00\x00\x77\x5A", "????????xx????x????xx????xx????x????xx");
+	Hooks::polyhook("hookkeycodes", addrKeyCodes, (DWORD*)&hookKeyCodes, (DWORD*)&origKeyCodes);
+
 	return 0;
 }
 

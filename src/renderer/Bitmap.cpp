@@ -46,10 +46,58 @@ Bitmap::BitmapTextbox *__fastcall hookConstructTextbox(DWORD DDDisplay, int EDX,
 	return origConstructTextbox(DDDisplay, EDX, Dst, length, fontid);
 }
 
+//ALL fucking ingame text boxes use this fucking func
+
+std::unordered_map<std::string, std::string> replacelist;
+void addreplacelist(std::string x, std::string y)
+{
+	replacelist[x] = y;
+}
+
+
+
+
+void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+	size_t start_pos = 0;
+	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+		str.replace(start_pos, from.length(), to);
+		start_pos += to.length(); 
+	}
+}
+
 int (__stdcall *origSetTextboxText)(Bitmap::BitmapTextbox *textbox, char *msg, int textcolor, int color1, int color2, int* a6, int* a7, int opacity);
-int __stdcall hookSetTextboxText(Bitmap::BitmapTextbox *textbox, char *msg, int textcolor, int color1, int color2, int* a6, int* a7, int opacity) {
-//	printf("setTextboxText: %X msg: %s textcolor: %d color1: %d color2: %d a6: %d a7: %d opacity: %X\n",
-//		   (DWORD)textbox, msg, textcolor, color1, color2, *a6, *a7, opacity);
+int __stdcall hookSetTextboxText(Bitmap::BitmapTextbox* textbox, char* msg, int textcolor, int color1, int color2, int* a6, int* a7, int opacity) {
+	if (!msg) {
+		// Handle the case where msg is null
+		return origSetTextboxText(textbox, msg, textcolor, color1, color2, a6, a7, opacity);
+	}
+
+	try {
+		std::string temp(msg);
+
+		for (const auto& x : replacelist) {
+			if (temp.find(x.first) != std::string::npos) {
+				replaceAll(temp, x.first, x.second);
+
+				// Allocate new memory for the modified message
+				char* msg2 = new char[temp.size() + 1];
+				std::strcpy(msg2, temp.c_str());
+
+				int result = origSetTextboxText(textbox, msg2, textcolor, color1, color2, a6, a7, opacity);
+
+				// Free the allocated memory to avoid memory leak
+				delete[] msg2;
+				delete[] msg;
+
+				return result;
+			}
+		}
+	}
+	catch (const std::exception& e) {
+		// Handle any exceptions that may occur
+		// Optionally log the exception message
+	}
+
 	return origSetTextboxText(textbox, msg, textcolor, color1, color2, a6, a7, opacity);
 }
 
@@ -66,7 +114,7 @@ void Bitmap::callDrawBitmapGlobal(int posY, int a3, int posX, Bitmap::BitmapImag
 
 int (__fastcall *origDrawTextboxLocal)(int *gamescene, int a2, int a3, int a4, Bitmap::BitmapTextbox *textbox, int a6, int a7, int a8);
 int __fastcall hookDrawTextboxLocal(int *gamescene, int posY, int a3, int posX, Bitmap::BitmapTextbox *textbox, int a6, int a7, int a8) {
-//	printf("drawTextboxLocal: posY: %d y: %d posX: %d textbox: %X a6: %d a7: %d a8: %d\n", posY / 0xFFFF, y, posX / 0xFFFF, (DWORD)textbox, a6, a7, a8);
+	//printf("drawTextboxLocal: posY: %d y: %d posX: %d textbox: %X a6: %d a7: %d a8: %d\n", posY / 0xFFFF, a6, posX / 0xFFFF, (DWORD)textbox, a6, a7, a8);
 	return origDrawTextboxLocal(gamescene, posY, a3, posX, textbox, a6, a7, a8);
 }
 
@@ -165,6 +213,7 @@ int Bitmap::install(SignatureScanner &, module) {
 
 
 	auto * lua = Lua::getInstance().getState();
+	lua->set_function("textboxReplace", &addreplacelist);
 	return 0;
 }
 

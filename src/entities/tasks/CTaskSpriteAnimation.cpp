@@ -23,7 +23,7 @@ int CTaskSpriteAnimation::install(SignatureScanner &signatureScanner, module mod
 	ut["unknown4C"] = &CTaskSpriteAnimation::unknown4C;
 	ut["unknown50"] = &CTaskSpriteAnimation::unknown50;
 	ut["unknown54"] = &CTaskSpriteAnimation::unknown54;
-	ut["unknown58"] = &CTaskSpriteAnimation::unknown58;
+	ut["spriteid"] = &CTaskSpriteAnimation::unknown58;
 	ut["unknown5C"] = &CTaskSpriteAnimation::unknown5C;
 	ut["unknown60"] = &CTaskSpriteAnimation::unknown60;
 	ut["unknown64"] = &CTaskSpriteAnimation::unknown64;

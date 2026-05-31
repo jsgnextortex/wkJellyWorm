@@ -129,11 +129,20 @@ void (__stdcall *origFrontendChangeScreen)(int screen);
 void __stdcall Lobby::hookFrontendChangeScreen(int screen) {
 	int sesi;
 	_asm mov sesi, esi
-
+	printf("screen: %d \n", screen);
 	switch(screen) {
 		case 10:	// main screen
 		case 11:	// local multiplayer
+			Config::resetConfig();
+			PackageManager::getInstance().enablePackage(schememodule, "latest", true);
+			PackageManager::getInstance().checkDependenciesAdd();
+			break;
 		case 21:	// single player
+		case 22:	// local next round
+			Config::resetConfig();
+			PackageManager::getInstance().enablePackage(schememodule, "latest", true);
+			PackageManager::getInstance().checkDependenciesAdd();
+			break;
 		case 1700:	// network
 		case 1702:	// lan network
 		case 1703:  // wormnet

@@ -48,8 +48,8 @@ int Explosions::callCreateExplosion(CGameTask * This, int posX, int posY, int pu
 
 int (__stdcall *origSpecialImpact)(CGameTask *This, int posX, int posY, int radiusX, int radiusY, int power, int pushX, int pushY, int type_a9, Constants::SoundIds a10, int a11, int collisionMask, int a13);
 int __stdcall hookSpecialImpact(CGameTask *This, int posX, int posY, int radiusX, int radiusY, int power, int pushX, int pushY, int type_a9, Constants::SoundIds soundOnHit, Constants::Sprites spriteOnHit, int collisionMask, int a13) {
-//	printf("SpecialImpact: posX: %d posY: %d radiusX: %d radiusY: %d power: %d pushX: %X pushY: %X type_a9: %d soundOnHit: %d spriteOnHit: %d collisionMask: %d a13: %d\n",
-//		   posX / 0xFFFF, posY / 0xFFFF, radiusX / 0xFFFF, radiusY / 0xFFFF, power, pushX, pushY, type_a9, soundOnHit, spriteOnHit, collisionMask, a13);
+	//printf("SpecialImpact: posX: %d posY: %d radiusX: %d radiusY: %d power: %d pushX: %X pushY: %X type_a9: %d soundOnHit: %d spriteOnHit: %d collisionMask: %d a13: %d\n",
+	//	   posX / 0xFFFF, posY / 0xFFFF, radiusX / 0xFFFF, radiusY / 0xFFFF, power, pushX, pushY, type_a9, soundOnHit, spriteOnHit, collisionMask, a13);
 	int ret = PackageManager::getInstance().handleSpecialImpact(This, posX, posY, radiusX, radiusY, power, pushX, pushY, type_a9, soundOnHit, spriteOnHit, collisionMask, a13);
 	if(ret) return ret;
 	return origSpecialImpact(This, posX, posY, radiusX, radiusY, power, pushX, pushY, type_a9, soundOnHit, spriteOnHit, collisionMask, a13);

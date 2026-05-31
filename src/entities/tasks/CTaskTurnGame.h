@@ -188,7 +188,7 @@ public:
 	static void triggerArmageddon(int amount, int delay);
 	static void triggerQuake(int amount);
 
-	static void spawnObject(SpawnObjectParams *params);
+	static void spawnObject(SpawnObjectParams *params);	
 	static void registerBuiltinCallbackVt8(std::function<int(CTaskTurnGame*, CTask *, Constants::TaskMessage, size_t, void *)> cb);
 };
 

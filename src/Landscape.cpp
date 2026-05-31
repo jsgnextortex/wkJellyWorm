@@ -40,7 +40,7 @@ int __stdcall hookRedrawLandRegion(int startX, int startY, int endX, int endY) {
 
 int (__fastcall *origWriteLandMaskID)(DWORD This, int EDX, int a2, int a3, int a4);
 int __fastcall hookWriteLandMaskID(DWORD This, int EDX, int maskid, int posX, int posY) {
-//	printf("writeLandMaskID: %X maskid: %d posX: %d posY: %d\n", This, maskid, posX, posY);
+	//printf("writeLandMaskID: %X maskid: %d posX: %d posY: %d\n", This, maskid, posX, posY);
 	int ret = PackageManager::getInstance().handleWriteLandMaskID(This, maskid, posX, posY);
 	if(ret) return ret;
 	return origWriteLandMaskID(This, EDX, maskid, posX, posY);
@@ -54,7 +54,7 @@ int Landscape::callWriteLandMaskID(int maskid, int posX, int posY) {
 
 void (__fastcall *origWriteLandRadius)(DWORD This, int EDX, int radius, int posX, int posY);
 void __fastcall hookWriteLandRadius(DWORD This, int EDX, int radius, int posX, int posY) {
-//	printf("writeLandRadius: radius: %d posx: %d posy: %d\n", radius, posX, posY);
+	//printf("writeLandRadius: radius: %d posx: %d posy: %d\n", radius, posX, posY);
 	int ret = PackageManager::getInstance().handleWriteLandRadius(This, radius, posX, posY);
 	if(ret) return;
 	return origWriteLandRadius(This, EDX, radius, posX, posY);
@@ -100,6 +100,17 @@ int Landscape::callWriteLandRaw(DWORD bitmap, int posX, int posY, int layer) {
 	return retv;
 }
 
+_HookDefLazy(CheckLandCollision, int, __stdcall, (int x, int y, int angleX, int angleY, int distance)) { //used by ninja rope collision test // PC_Landscape::land_collision_1
+	return origCheckLandCollision(x, y, angleX, angleY, distance);
+}
+
+int callCheckLandCollision(int x, int y, int angleX, int angleY, int distance) {
+	DWORD addrPCLandscape = Game::getAddrPCLandscape();
+	_asm mov ecx, addrPCLandscape
+	int ret = hookCheckLandCollision(x, y, angleX, angleY, distance);
+	return ret;
+}
+
 
 int Landscape::install(SignatureScanner & signatureScanner, module mod) {
 	DWORD addrConstructPCLandscape = Hooks::scanPattern("ConstructPC_Landscape", "\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x81\xEC\x00\x00\x00\x00\x8B\x84\x24\x00\x00\x00\x00\x53\x55\x8B\xAC\x24\x00\x00\x00\x00\x56\x8B\xB4\x24\x00\x00\x00\x00\x57\x89\x45\x04", "???????xx????xxxx????xx????xxx????xxxxx????xxxx????xxxx", 0x57ACB0);
@@ -118,5 +129,12 @@ int Landscape::install(SignatureScanner & signatureScanner, module mod) {
 	lua->set_function("writeLandRadius", &callWriteLandRadius);
 	lua->set_function("writeLandMaskID", &callWriteLandMaskID);
 	lua->set_function("writeLandRaw", &callWriteLandRaw);
+
+
+	_ScanLazy(CheckLandCollision, "5153558b6c24??5633f6");
+	_HookDefault(CheckLandCollision);
+	
+	lua->set_function("checkLandCollision", &callCheckLandCollision);
+
 	return 0;
 }

@@ -80,4 +80,49 @@ public:
 };
 
 
+class BoiledDownSprite {
+public:
+	int dword0;
+	int dword4;
+	int word8;
+	int fps_wordA;
+	int width_wordC;
+	int height_wordE;
+	int flags_word10;
+	int max_frames_copy_word12;
+	int word14;
+	int max_frames_word16;
+	int word18;
+	int word1A;
+	int dword1C;
+	int dword20;
+	int dword24;
+	Sprites::SpriteFrame* frame_meta_ptr_dword28;
+	int dword2C;
+	int word30;
+	int word32;
+
+
+	int bitmap_dword34;
+
+	int dword38;
+	int dword3C;
+	int dword40;
+	int dword44;
+	int dword48;
+	int dword4C;
+	int dword50;
+	int dword54;
+	int dword58;
+	int dword5C;
+
+	//	Bitmap::BitmapImage bitmap;
+	int dword60;
+	int probably_sprite_bitmap_data_dword64;
+	int maybe_palette_data_dword68;
+	int dword6C;
+
+};
+
+
 #endif //WKJELLYWORM_SPRITES_H

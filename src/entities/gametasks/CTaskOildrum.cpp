@@ -17,13 +17,13 @@ int CTaskOildrum::install(SignatureScanner &signatureScanner, module mod) {
 	CTaskAddLuaVTHooks(CTaskOildrum)
 	CGameTaskAddLuaVTHooks(CTaskOildrum)
 
-	ut["unknownF0"] = &CTaskOildrum::unknownF0;
+	ut["fallspeed"] = &CTaskOildrum::unknownF0;
 	ut["unknownF4"] = &CTaskOildrum::unknownF4;
 	ut["unknownF8"] = &CTaskOildrum::unknownF8;
 	ut["unknownFC"] = &CTaskOildrum::unknownFC;
 	ut["unknown100"] = &CTaskOildrum::unknown100;
-	ut["unknown104"] = &CTaskOildrum::unknown104;
-	ut["unknown108"] = &CTaskOildrum::unknown108;
+	ut["heat"] = &CTaskOildrum::unknown104;
+	ut["maxheat"] = &CTaskOildrum::unknown108;
 	ut["unknown10C"] = &CTaskOildrum::unknown10C;
 
 	return 0;

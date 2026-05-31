@@ -29,24 +29,28 @@ int CGameTask::install(SignatureScanner &signatureScanner, module mod) {
 	// for some reason polyhook does it wrong
 
 	auto * lua = Lua::getInstance().getState();
+
+
+
 	sol::usertype <CGameTask> ut = lua->new_usertype <CGameTask> ("CGameTask", sol::base_classes, sol::bases<CTask>());
 
 	CTaskAddLuaVTHooks(CGameTask)
 	CGameTaskAddLuaVTHooks(CGameTask)
 
-	ut["unknown30"] = &CGameTask::unknown30;
-	ut["unknown34"] = &CGameTask::unknown34;
+	ut["collisionstate"] = &CGameTask::collisionstate;
+	ut["collisionflags"] = &CGameTask::collisionflags;
 	ut["unknown38"] = &CGameTask::unknown38;
 	ut["unknown3C"] = &CGameTask::unknown3C;
 	ut["unknown40"] = &CGameTask::unknown40;
-	ut["unknown44"] = &CGameTask::unknown44;
+	ut["unknown44"] = &CGameTask::unknown44; 
+	ut["state"] = &CGameTask::unknown44; 
 	ut["unknown48"] = &CGameTask::unknown48;
 	ut["unknown4C"] = &CGameTask::unknown4C;
 	ut["unknown50"] = &CGameTask::unknown50;
 	ut["unknown54"] = &CGameTask::unknown54;
-	ut["unknown58"] = &CGameTask::unknown58;
-	ut["unknown5C"] = &CGameTask::unknown5C;
-	ut["unknown60"] = &CGameTask::unknown60;
+	ut["airspeedmult"] = &CGameTask::airspeedmult; //unknown58
+	ut["windfactor"] = &CGameTask::windfactor; //unknown5C
+	ut["gravityfactor"] = &CGameTask::gravityfactor; //unknown60
 	ut["unknown64"] = &CGameTask::unknown64;
 	ut["unknown68"] = &CGameTask::unknown68;
 	ut["unknown6C"] = &CGameTask::unknown6C;
@@ -64,24 +68,26 @@ int CGameTask::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown9C"] = &CGameTask::unknown9C;
 	ut["unknownA0"] = &CGameTask::unknownA0;
 	ut["unknownA4"] = &CGameTask::unknownA4;
-	ut["unknownA8"] = &CGameTask::unknownA8;
+	ut["waterskimfactor"] = &CGameTask::waterskimfactor;
 	ut["unknownAC"] = &CGameTask::unknownAC;
-	ut["unknownB0"] = &CGameTask::unknownB0;
+	ut["unknownB0"] = &CGameTask::underwater;
+	ut["underwater"] = &CGameTask::underwater;
 	ut["unknownB4"] = &CGameTask::unknownB4;
-	ut["unknownB8"] = &CGameTask::unknownB8;
-	ut["unknownBC"] = &CGameTask::unknownBC;
-	ut["unknownC0"] = &CGameTask::unknownC0;
-	ut["unknownC4"] = &CGameTask::unknownC4;
-	ut["unknownC8"] = &CGameTask::unknownC8;
+	ut["unknownB8"] = &CGameTask::airborne;
+	ut["airborne"] = &CGameTask::airborne;
+	ut["ropeattached"] = &CGameTask::ropeattached;
+	ut["ropeanchorX"] = &CGameTask::ropeanchorX;
+	ut["ropeanchorY"] = &CGameTask::ropeanchorY;
+	ut["unknownrope"] = &CGameTask::unknownrope;
 	ut["unknownCC"] = &CGameTask::unknownCC;
-	ut["unknownD0"] = &CGameTask::unknownD0;
-	ut["unknownD4"] = &CGameTask::unknownD4;
-	ut["unknownD8"] = &CGameTask::unknownD8;
-	ut["unknownDC"] = &CGameTask::unknownDC;
-	ut["unknownE0"] = &CGameTask::unknownE0;
-	ut["unknownE4"] = &CGameTask::unknownE4;
-	ut["unknownE8"] = &CGameTask::unknownE8;
-	ut["unknownEC"] = &CGameTask::unknownEC;
+	ut["numberofropesegments"] = &CGameTask::numberofropesegments;
+	ut["unkfilterclouds"] = &CGameTask::unkfilterclouds;
+	ut["unknownD8"] = &CGameTask::unknownD8; //always 256?
+	ut["unknownDC"] = &CGameTask::unknownDC; //used by actual shit (oildrum?)
+	ut["unknownE0"] = &CGameTask::unknownE0; //related to entity init
+	ut["unknownE4"] = &CGameTask::unknownE4; //filter cloud shit
+	ut["unknownE8"] = &CGameTask::unknownE8; //almost every entity uses it, its some random value (mem dir?)
+	ut["unknownEC"] = &CGameTask::unknownEC; //almost every entity uses it, its some random value (mem dir?)
 
 
 	return 0;

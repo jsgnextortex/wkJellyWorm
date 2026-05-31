@@ -2,19 +2,22 @@
 #define WKJELLYWORM_CTASKWORM_H
 
 
+#include "..\..\..\src\entities\tasks\CTaskSpriteAnimation.h"
 #include "../CGameTask.h"
 #include "../../Constants.h"
+#include "../../CustomWeapons.h"
+#include <src/Sprites.h>
 
 class CTaskWorm : public CGameTask {
 public:
 	int unknownF0; // 0xF0
 	int unknownF4; // 0xF4
 	int unknownF8; // 0xF8
-	int unknownFC; // 0xFC
-	int unknown100; // 0x100
-	int unknown104; // 0x104
-	int unknown108; // 0x108
-	int unknown10C; // 0x10C
+	int unknownFC; // 0xFC //team number
+	int wormnumber_dword100; // 0x100
+	int unknown104; // 0x104 //active worm
+	int unknown108; // 0x108 //suspended worm
+	int unknown10C; // 0x10C //color
 	int unknown110; // 0x110
 	int unknown114; // 0x114
 	int unknown118; // 0x118
@@ -36,10 +39,10 @@ public:
 	int unknown158; // 0x158
 	int unknown15C; // 0x15C
 	int unknown160; // 0x160
-	int unknown164; // 0x164
+	int unknown164; // 0x164 //state counter
 	int unknown168; // 0x168
 	int unknown16C; // 0x16C
-	int unknown170; // 0x170
+	int unknown170; // 0x170 //selected weapon
 	int unknown174; // 0x174
 	int unknown178; // 0x178
 	int unknown17C; // 0x17C
@@ -53,7 +56,7 @@ public:
 	int unknown19C; // 0x19C
 	int unknown1A0; // 0x1A0
 	int unknown1A4; // 0x1A4
-	int unknown1A8; // 0x1A8
+	int unknown1A8; // 0x1A8 //facing dir
 	int unknown1AC; // 0x1AC
 	int unknown1B0; // 0x1B0
 	int unknown1B4; // 0x1B4
@@ -103,7 +106,7 @@ public:
 	int unknown264; // 0x264
 	int unknown268; // 0x268
 	int unknown26C; // 0x26C
-	int unknown270; // 0x270
+	int unknown270; // 0x270 //shooting angle
 	int unknown274; // 0x274
 	int unknown278; // 0x278
 	int unknown27C; // 0x27C
@@ -166,7 +169,7 @@ public:
 	int unknown360; // 0x360
 	int unknown364; // 0x364
 	int unknown368; // 0x368
-	int unknown36C; // 0x36C
+	CustomWeapons::WeaponStruct* unknown36C; // 0x36C //selected weapon entry
 	int unknown370; // 0x370
 	int unknown374; // 0x374
 	int unknown378; // 0x378
