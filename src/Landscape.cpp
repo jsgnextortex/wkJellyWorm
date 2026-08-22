@@ -67,15 +67,16 @@ void Landscape::callWriteLandRadius(int radius, int posX, int posY) {
 
 DWORD origWriteLandRaw;
 int __stdcall hookWriteLandRaw(int posX, int posY, int layer) {
+	//printf("writeLandRaw: posx: %d posy: %d layer: %d\n", posX, posY,layer);
 	int bitmap, land, retv;
 	_asm mov bitmap, ecx
 	_asm mov land, edi
 
 	int ret = PackageManager::getInstance().handleWriteLandRaw(bitmap, land, posX, posY, layer);
 	if(ret) return ret;
-
+	
 //	DWORD addrPCLandscape = *(DWORD*)(Game::getAddrDDGame() + 0x4CC);
-//	printf("writeLandRaw: PCLandscape: %X bitmap: %X land: %X posX: %d posY: %d layer: %d\n", addrPCLandscape, bitmap, land, posX, posY, layer);
+	//printf("writeLandRaw: PCLandscape: %X bitmap: %X land: %X posX: %d posY: %d layer: %d\n",  bitmap, land, posX, posY, layer);
 	_asm mov ecx, bitmap
 	_asm mov edi, land
 	_asm push layer
