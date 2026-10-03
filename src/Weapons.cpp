@@ -259,6 +259,38 @@ int __stdcall callBullet2Object(CGameTask* worm, int xpos, int ypos, int angleX
 	return origBullet2Object(worm, xpos, ypos, angleX, angleY, range, collissionflags);
 }
 
+
+
+DWORD(__stdcall* origAddAmmo)(DWORD team_info_obj, int weapon_id);
+DWORD __stdcall CustomWeapons::hookAddAmmo(DWORD team_info_obj, int weapon_id) {
+	int seax, sedx, retv;
+	_asm mov seax, eax //team
+	_asm mov sedx, edx //amount
+
+
+	int ret = PackageManager::getInstance().handleAddAmmo(seax, weapon_id, sedx);
+	if (ret) sedx = 0;
+
+	if (weapon_id < maxStandardWeapons) {
+		_asm mov eax, seax
+		_asm mov edx, sedx
+		_asm push weapon_id
+		_asm push team_info_obj
+		_asm call origAddAmmo
+		_asm mov retv, eax
+		return retv;
+	}
+	int alliance_id = *(DWORD*)(1308 * seax + team_info_obj + 4);
+	auto& entry = ammoTable[alliance_id][weapon_id];
+	if (entry >= 0) {
+		if (sedx >= 0)
+			entry += sedx;
+		else
+			entry = -1;
+	}
+	return (DWORD)&ammoTable[alliance_id][weapon_id];
+}
+
 void callFireBullet(CTaskWorm* worm, Weapons::WeaponLaunchParams* params) {
 	//pepe->unknown0 = 1;
 	//pepe->unknown4 = 1;
@@ -301,6 +333,10 @@ int Weapons::install(SignatureScanner &, module) {
 	Hooks::polyhook("CreateWeaponProjectile", addrCreateWeaponProjectile, (DWORD *) &hookCreateWeaponProjectile, (DWORD *) &origCreateWeaponProjectile);
 	Hooks::polyhook("FireBulletProjectile", addrFireBulletProjectile, (DWORD *) &hookFireBulletProjectile, (DWORD *) &origFireBulletProjectile);
 	
+
+
+	DWORD addrAddAmmo = Hooks::scanPattern("AddAmmo", "\x8B\x4C\x24\x04\x69\xC0\x00\x00\x00\x00\x8B\x44\x08\x04\x69\xC0\x00\x00\x00\x00\x03\x44\x24\x08\x8D\x84\x81\x00\x00\x00\x00\x8B\x08\x85\xC9\x7C\x11\x85\xD2", "??????????xxxxxx????xxxxxxx????xxxxxxxx", 0x522640);
+	Hooks::polyhook("addAmmo", addrAddAmmo, (DWORD*)&CustomWeapons::hookAddAmmo, (DWORD*)&origAddAmmo);
 
 
 	auto * lua = Lua::getInstance().getState();

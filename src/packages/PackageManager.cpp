@@ -48,6 +48,7 @@ PackageManager::PackageManager() {
 	lua->set_function("registerCallback_wormStartFiringWeapon", &Callbacks<&wormStartFiringWeapon_t>::registerCallback);
 	lua->set_function("registerCallback_fireWeapon", &Callbacks<&fireWeapon_t>::registerCallback);
 	lua->set_function("registerCallback_drawSpriteLocal", &Callbacks<&drawspritelocal_t>::registerCallback);
+	lua->set_function("registerCallback_addAmmo", &Callbacks<&addAmmo_t>::registerCallback);
 	lua->set_function("registerCallback_createWeaponProjectile", &Callbacks<&createWeaponProjectile_t>::registerCallback);
 	lua->set_function("registerCallback_fireBulletProjectile", &Callbacks<&FireBulletProjectile_t>::registerCallback);
 
@@ -66,6 +67,7 @@ void PackageManager::clearCallbacks() {
 	Callbacks<&fireWeapon_t>::clearCallbacks();
 	Callbacks<&drawspritelocal_t>::clearCallbacks();
 	Callbacks<&createWeaponProjectile_t>::clearCallbacks();
+	Callbacks<&addAmmo_t>::clearCallbacks();
 	Callbacks<&FireBulletProjectile_t>::clearCallbacks();
 }
 
@@ -430,6 +432,10 @@ int PackageManager::handleWeaponRelease(CGameTask *This, int posX, int posY, int
 
 int PackageManager::handleWormStartFiringWeapon(CTaskWorm *worm) {
 	return Callbacks<&wormStartFiringWeapon_t>::callCallbacks(worm);
+}
+
+int PackageManager::handleAddAmmo(int teamid, int weaponid, int amount) {
+	return Callbacks<&addAmmo_t>::callCallbacks(teamid,weaponid,amount);
 }
 
 int PackageManager::handleFireWeapon(CTaskWorm *worm, CustomWeapons::WeaponStruct *weaponStruct, Weapons::WeaponLaunchParams *launchParams) {

@@ -470,30 +470,6 @@ int __stdcall CustomWeapons::hookGetAmmo() {
 	}
 }
 
-DWORD (__stdcall *origAddAmmo)(DWORD team_info_obj, int weapon_id);
-DWORD __stdcall CustomWeapons::hookAddAmmo(DWORD team_info_obj, int weapon_id) {
-	int seax, sedx, retv;
-	_asm mov seax, eax //team
-	_asm mov sedx, edx //amount
-	if(weapon_id < maxStandardWeapons) {
-		_asm mov eax, seax
-		_asm mov edx, sedx
-		_asm push weapon_id
-		_asm push team_info_obj
-		_asm call origAddAmmo
-		_asm mov retv, eax
-		return retv;
-	}
-	int alliance_id = *(DWORD *)(1308 * seax + team_info_obj + 4);
-	auto & entry = ammoTable[alliance_id][weapon_id];
-	if(entry >= 0) {
-		if(sedx >= 0)
-			entry += sedx;
-		else
-			entry = -1;
-	}
-	return (DWORD)&ammoTable[alliance_id][weapon_id];
-}
 
 //_DWORD *__userpurge subtract_ammo_sub_522560@<eax>(int a1@<eax>, int x@<ecx>, int y)
 DWORD *(__stdcall * origSubtractAmmo)(int weapon_id);
@@ -952,7 +928,6 @@ int CustomWeapons::install(SignatureScanner & signatureScanner, module mod) {
 	Hooks::hookAsm(addrWeaponPanelDescription_getAmmoDelay_patch1, (DWORD)&hookWeaponPanelDescription_getAmmoDelay_patch1);
 
 	DWORD addrGetAmmo = Hooks::scanPattern("GetAmmo", "\x8B\xC8\x69\xC9\x00\x00\x00\x00\x8B\x4C\x31\x04\x69\xC9\x00\x00\x00\x00\x57\x8D\x3C\x11\x83\xBC\xBE\x00\x00\x00\x00\x00\x74\x1E\x83\xBE\x00\x00\x00\x00\x00", "????????xxxxxx????xxxxxxx?????xxxx?????", 0x5225E0);
-	DWORD addrAddAmmo = Hooks::scanPattern("AddAmmo", "\x8B\x4C\x24\x04\x69\xC0\x00\x00\x00\x00\x8B\x44\x08\x04\x69\xC0\x00\x00\x00\x00\x03\x44\x24\x08\x8D\x84\x81\x00\x00\x00\x00\x8B\x08\x85\xC9\x7C\x11\x85\xD2", "??????????xxxxxx????xxxxxxx????xxxxxxxx", 0x522640);
 	DWORD addrSubtractAmmo = Hooks::scanPattern("SubtractAmmo", "\x69\xC0\x00\x00\x00\x00\x8B\x44\x08\x04\x69\xC0\x00\x00\x00\x00\x03\x44\x24\x04\x8D\x84\x81\x00\x00\x00\x00\x8B\x08\x85\xC9\x7E\x05\x83\xC1\xFF\x89\x08", "??????xxxxxx????xxxxxxx????xxxxxxxxxxx", 0x522680);
 	DWORD addrSubtractAmmo_v2 = Hooks::scanPattern("SubtractAmmo_v2", "\x8B\x42\x2C\xC7\x42\x00\x00\x00\x00\x00\x8B\x80\x00\x00\x00\x00\x85\xC0\x74\x0A\xC7\x80\x00\x00\x00\x00\x00\x00\x00\x00\x8B\x4A\x38", "??????????xx????xxxxxx????????xxx", 0x558E80);
 	DWORD addrReduceDelayOnTurnStart = Hooks::scanPattern("ReduceDelayOnTurnStart", "\x8B\x46\x2C\x8B\x48\x24\x81\xB9\x00\x00\x00\x00\x00\x00\x00\x00\x53\x55\x57\x7C\x19\x8B\x56\x38\x69\xD2\x00\x00\x00\x00\x8B\x8C\x02\x00\x00\x00\x00", "??????xx????????xxxxxxxxxx????xxx????", 0x556E90);
@@ -960,7 +935,6 @@ int CustomWeapons::install(SignatureScanner & signatureScanner, module mod) {
 
 	Hooks::polyhook("initializeWeaponTable", addrInitializeWeaponTable, (DWORD *) &hookInitializeWeaponTable, (DWORD *) &origInitializeWeaponTable);
 	Hooks::polyhook("getAmmo", addrGetAmmo, (DWORD *) &hookGetAmmo, (DWORD *) &origGetAmmo);
-	Hooks::polyhook("addAmmo", addrAddAmmo, (DWORD *) &hookAddAmmo, (DWORD *) &origAddAmmo);
 	Hooks::polyhook("subtractAmmo_v1", addrSubtractAmmo, (DWORD *) &hookSubtractAmmo, (DWORD *) &origSubtractAmmo);
 	Hooks::polyhook("subtractAmmo_v2", addrSubtractAmmo_v2, (DWORD *) &hookSubtractAmmo_v2, (DWORD *) &origSubtractAmmo_v2);
 //	Hooks::minhook("loadWeaponPanelImgs", addrLoadWeaponPanelImgs, (DWORD*)&hookLoadWeaponPanelImgs, (DWORD*)&origLoadWeaponPanelImgs);

@@ -90,6 +90,7 @@ public:
 	static int wormStartFiringWeapon_t(CTaskWorm * worm);
 	static int fireWeapon_t(CTaskWorm * worm, CustomWeapons::WeaponStruct * weaponStruct, Weapons::WeaponLaunchParams * launchParams);
 	static int drawspritelocal_t(int layer, int posx,int posy, int sprite, int frame);
+	static int addAmmo_t(int teamid, int weaponid,int amount);
 	static int createWeaponProjectile_t(CGameTask * This, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams);
 	static int FireBulletProjectile_t(CGameTask * This, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams);
 
@@ -104,6 +105,7 @@ public:
 
 	int handleWeaponRelease(CGameTask * This, int posX, int posY, int angleX, int angleY);
 	int handleWormStartFiringWeapon(CTaskWorm * worm);
+	int handleAddAmmo(int teamid, int weaponid, int ammo);
 	int handleFireWeapon(CTaskWorm * worm, CustomWeapons::WeaponStruct * weaponStruct, Weapons::WeaponLaunchParams * launchParams);
 	int handleCreateWeaponProjectile(CGameTask * This, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams);
 	int handleFireBulletProjectile(CGameTask * This, Weapons::WeaponProjectileParams * projectileParams, Weapons::WeaponLaunchParams * launchParams);

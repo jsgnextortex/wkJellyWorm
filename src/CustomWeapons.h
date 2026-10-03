@@ -732,7 +732,7 @@ private:
 //	static DWORD __stdcall getAmmoAddr_v1(int team_id, int weapon_id, int teaminfo_obj, int tabletype);
 	static DWORD __stdcall getAmmoAddr_v2(int weapon_panel_obj, int weapon_id, int tabletypw);
 
-	static DWORD __stdcall hookAddAmmo(DWORD team_info_obj, int weapon_id);
+	
 	static DWORD *__stdcall hookSubtractAmmo(int weapon_id);
 	static DWORD *__fastcall hookSubtractAmmo_v2(int a1, CTaskTeam *a2);
 	static int hookGetAmmo_wrapped(int team_id, int weapon_id, DWORD teaminfo_obj);
@@ -754,6 +754,7 @@ public:
 	static int registerCustomWeapon(WeaponStruct weaponStruct, std::string img, std::string name1, std::string name2);
 	static WeaponStruct* getWeaponData(int weapid);
 	static void resetConfig();
+	static DWORD __stdcall hookAddAmmo(DWORD team_info_obj, int weapon_id);
 };
 
 #endif //WKJELLYWORM_CUSTOMWEAPONS_H
