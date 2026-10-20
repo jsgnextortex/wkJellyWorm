@@ -151,6 +151,7 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown218"] = &CTaskWorm::unknown218;
 	ut["unknown21C"] = &CTaskWorm::unknown21C;
 	ut["unknown220"] = &CTaskWorm::unknown220;
+	ut["jeyfuel"] = &CTaskWorm::unknown220;
 	ut["unknown224"] = &CTaskWorm::unknown224;
 	ut["unknown228"] = &CTaskWorm::unknown228;
 	ut["unknown22C"] = &CTaskWorm::unknown22C;
@@ -160,7 +161,9 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown23C"] = &CTaskWorm::unknown23C;
 	ut["unknown240"] = &CTaskWorm::unknown240;
 	ut["unknown244"] = &CTaskWorm::unknown244;
+	ut["shootpower"] = &CTaskWorm::unknown248;
 	ut["unknown248"] = &CTaskWorm::unknown248;
+	ut["shootingangle"] = &CTaskWorm::unknown24C;
 	ut["unknown24C"] = &CTaskWorm::unknown24C;
 	ut["unknown250"] = &CTaskWorm::unknown250;
 	ut["unknown254"] = &CTaskWorm::unknown254;
@@ -170,8 +173,9 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown264"] = &CTaskWorm::unknown264;
 	ut["unknown268"] = &CTaskWorm::unknown268;
 	ut["unknown26C"] = &CTaskWorm::unknown26C;
+	ut["readytofire"] = &CTaskWorm::unknown26C; // 65527 ready ( < 65527 not ready)
 	ut["unknown270"] = &CTaskWorm::unknown270;
-	ut["shootingangle"] = &CTaskWorm::unknown270; // 65527 - 0 (65527 up, 0 down)
+	ut["shootingangle2"] = &CTaskWorm::unknown270; // 65527 - 0 (65527 up, 0 down)
 	ut["unknown274"] = &CTaskWorm::unknown274;
 	ut["unknown278"] = &CTaskWorm::unknown278;
 	ut["unknown27C"] = &CTaskWorm::unknown27C;
@@ -235,6 +239,7 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown360"] = &CTaskWorm::unknown360;
 	ut["unknown364"] = &CTaskWorm::unknown364;
 	ut["unknown368"] = &CTaskWorm::unknown368;
+	ut["sprite"] = &CTaskWorm::unknown368;
 	ut["unknown36C"] = &CTaskWorm::unknown36C;
 	ut["currweapentry"] = &CTaskWorm::unknown36C;
 	ut["unknown370"] = &CTaskWorm::unknown370;

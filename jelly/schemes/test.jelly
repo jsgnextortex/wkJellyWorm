@@ -1,0 +1,45 @@
+{
+    "packages": {
+        "test:0.0.1": {
+            "config": {
+                "test": 993
+            },
+            "name": "test",
+            "version": "0.0.1"
+        }
+    },
+    "version": {
+        "host": {
+            "built": "Apr 19 2021 15:15:01",
+            "git": {
+                "authorEmail": "6520511-somedude-wk@users.noreply.gitlab.com",
+                "authorName": "Some Dude",
+                "commitBody": "",
+                "commitDate": "2021-04-19 15:12:02 +0200",
+                "commitDescribe": "04c2324",
+                "commitSha1": "04c23247e632807ee5a90d139058dcd2cf0e8824",
+                "commitSubject": "Port to 3.8.1",
+                "populated": true,
+                "uncommittedChanges": true
+            },
+            "versionInt": 1,
+            "versionstr": "0.0.1"
+        },
+        "local": {
+            "built": "Apr 19 2021 15:15:01",
+            "git": {
+                "authorEmail": "6520511-somedude-wk@users.noreply.gitlab.com",
+                "authorName": "Some Dude",
+                "commitBody": "",
+                "commitDate": "2021-04-19 15:12:02 +0200",
+                "commitDescribe": "04c2324",
+                "commitSha1": "04c23247e632807ee5a90d139058dcd2cf0e8824",
+                "commitSubject": "Port to 3.8.1",
+                "populated": true,
+                "uncommittedChanges": true
+            },
+            "versionInt": 1,
+            "versionstr": "0.0.1"
+        }
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "test",
+  "description": "test...",
+  "version": "0.0.1",
+  "author": "nizikawa",
+  "scripts": [
+    "main.lua"
+  ],
+  "sprites": [],
+  "imgs": [],
+  "dependencies": []
+}

@@ -168,7 +168,7 @@ public:
 	int unknown35C; // 0x35C
 	int unknown360; // 0x360
 	int unknown364; // 0x364
-	int unknown368; // 0x368
+	CustomWeapons::Sprite* unknown368; // 0x368
 	CustomWeapons::WeaponStruct* unknown36C; // 0x36C //selected weapon entry
 	int unknown370; // 0x370
 	int unknown374; // 0x374

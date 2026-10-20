@@ -5493,6 +5493,7 @@ end
 
 function onChatInput(command)
 	io.write(string.format("onChatInput: %s\n", command))
+	
 	if command:sub(1, 4) == "lua " then
 		local luaCode = command:sub(5)
         local success, result = pcall(function()
@@ -5823,6 +5824,7 @@ end
 		Weapon_MBBomb,
 		Weapon_MagicBullet,		
 		Weapon_SalvationArmy,
+		"Maiktungo",
 		"Centinela de Mike",
 		Weapon_MingVase,
 		"Salud de Mike",
@@ -10391,6 +10393,210 @@ jetpackparams.unknown0 = 1
 jetpackparams.unknownC = 20905983
 jetpackparams.unknown4 = 2
 
+
+
+
+
+
+function scrambleworms()
+    local num = getNumObjects(ClassType_Task_Worm)
+    if num < 2 then return end
+
+    local worms = {}
+    local positions = {}
+    local teams = {}
+    local teamIDs = {}
+
+    -- Collect worms and positions (1-based indexing)
+    for i = 1, num do
+        local worm = CTaskWorm_CastCTask(
+            getObject(ClassType_Task_Worm, i)
+        )
+
+        worms[i] = worm
+        positions[i] = { x = worm.posX, y = worm.posY }
+
+        local teamID = worm.unknownFC
+        if not teams[teamID] then
+            teams[teamID] = {}
+            teamIDs[#teamIDs + 1] = teamID
+        end
+
+        teams[teamID][#teams[teamID] + 1] = worm
+    end
+
+    -- Sort positions from top to bottom
+    table.sort(positions, function(a, b)
+        return a.y < b.y
+    end)
+
+    -- Shuffle team order
+    for i = #teamIDs, 2, -1 do
+        local j = math.random(i)
+        teamIDs[i], teamIDs[j] = teamIDs[j], teamIDs[i]
+    end
+
+    -- Shuffle worms within each team
+    for _, teamID in ipairs(teamIDs) do
+        local list = teams[teamID]
+        for i = #list, 2, -1 do
+            local j = math.random(i)
+            list[i], list[j] = list[j], list[i]
+        end
+    end
+
+    -- Create vertical bands
+    local bandSize = math.max(2, math.ceil(num / math.max(2, #teamIDs * 2)))
+    local bands = {}
+
+    for start = 1, num, bandSize do
+        local band = {
+            first = start,
+            last = math.min(start + bandSize - 1, num),
+            worms = {}
+        }
+        bands[#bands + 1] = band
+    end
+
+    -- Distribute each team's worms round-robin across bands
+    local teamIndex = 1
+    for _, teamID in ipairs(teamIDs) do
+        local list = teams[teamID]
+        for _, worm in ipairs(list) do
+            local band = bands[teamIndex]
+            band.worms[#band.worms + 1] = worm
+            teamIndex = teamIndex + 1
+            if teamIndex > #bands then teamIndex = 1 end
+        end
+    end
+
+    -- Fill positions in each band, prioritizing teams with fewer
+    -- worms already assigned to that band.
+    local orderedWorms = {}
+    local assigned = {}
+
+    for _, teamID in ipairs(teamIDs) do
+        assigned[teamID] = {}
+        for b = 1, #bands do
+            assigned[teamID][b] = 0
+        end
+    end
+
+    for b, band in ipairs(bands) do
+        local candidates = {}
+
+        for _, teamID in ipairs(teamIDs) do
+            for _, worm in ipairs(teams[teamID]) do
+                candidates[#candidates + 1] = worm
+            end
+        end
+
+        -- Rebuild remaining worms by tracking those already used.
+        local used = {}
+        for i = 1, band.first - 1 do
+            used[orderedWorms[i]] = true
+        end
+
+        for i = band.first, band.last do
+            local bestCount = math.huge
+            local best = {}
+
+            for _, teamID in ipairs(teamIDs) do
+                local count = assigned[teamID][b]
+                local available = false
+
+                for _, worm in ipairs(teams[teamID]) do
+                    if not used[worm] then
+                        available = true
+                        break
+                    end
+                end
+
+                if available then
+                    if count < bestCount then
+                        bestCount = count
+                        best = { teamID }
+                    elseif count == bestCount then
+                        best[#best + 1] = teamID
+                    end
+                end
+            end
+
+            local teamID = best[math.random(#best)]
+            local teamWorms = teams[teamID]
+
+            local available = {}
+            for _, worm in ipairs(teamWorms) do
+                if not used[worm] then
+                    available[#available + 1] = worm
+                end
+            end
+
+            local chosen = available[math.random(#available)]
+            used[chosen] = true
+            orderedWorms[i] = chosen
+            assigned[teamID][b] = assigned[teamID][b] + 1
+        end
+    end
+
+    -- Assign positions
+    for i = 1, num do
+        orderedWorms[i].posX = positions[i].x
+        orderedWorms[i].posY = positions[i].y
+    end
+
+    -- Fast local mixing within each band only.
+    -- This cannot move a worm into another vertical band.
+    local attempts = math.min(num * 3, 150)
+
+    for iteration = 1, attempts do
+        local b = math.random(#bands)
+        local band = bands[b]
+
+        if band.last > band.first then
+            local i = math.random(band.first, band.last)
+            local j = math.random(band.first, band.last)
+
+            if i ~= j then
+                local a = orderedWorms[i]
+                local c = orderedWorms[j]
+
+                if a.unknownFC ~= c.unknownFC then
+                    local function score(worm)
+                        local s = 0
+                        for k = band.first, band.last do
+                            local other = orderedWorms[k]
+                            if other ~= worm and
+                               other.unknownFC == worm.unknownFC then
+                                local dx = worm.posX - other.posX
+                                local dy = worm.posY - other.posY
+                                s = s + 1 / (dx * dx + dy * dy + 1)
+                            end
+                        end
+                        return s
+                    end
+
+                    local old = score(a) + score(c)
+
+                    a.posX, c.posX = c.posX, a.posX
+                    a.posY, c.posY = c.posY, a.posY
+
+                    local new = score(a) + score(c)
+
+                    if new >= old then
+                        a.posX, c.posX = c.posX, a.posX
+                        a.posY, c.posY = c.posY, a.posY
+                    end
+                end
+            end
+        end
+    end
+end
+
+
+
+
+
 function prefireweap(worm)
 	if (worm.unknown170 == Weapon_JetPack)  then
 		if (getTeamAmmo(worm.unknownFC,Weapon_JetPack,0) > 0) and (not pendskipgo) then
@@ -10588,6 +10794,13 @@ function cajasdemike(worm, structure,jump_info) --info is actually projparams
 		return 1
 	end
 	
+	if structure.name1 == "DrawMap" then
+		--writeLandRadius(36,jump_info.unknown18 /65536,jump_info.unknown1C / 65536)
+		penddrawx = jump_info.unknown18 /65536
+		penddrawy = jump_info.unknown1C / 65536
+		--writeLandMaskID(3,jump_info.unknown18 /65536,jump_info.unknown1C / 65536)
+		return 1
+	end
 	if structure.name1 == "Lazor" then
 		local targetangle = worm.shootingangle
 		local targetdir = worm.facingdirection
@@ -11652,6 +11865,8 @@ WormState_JUMP = 121
 WormState_JUMPDOWN = 122
 WormState_PARACHUTE = 125
 
+
+
 local skipgostates = {}
 skipgostates[WormState_IDLE2] = true
 skipgostates[WormState_IDLE] = true
@@ -11864,7 +12079,7 @@ end
 function worm(This, sender, messagetype, psize, params)	
 	
 	
-	
+	--io.write((This.sprite.spriteid / posmult)  .. "\n")
 	
 	
 	--PrintStuff(This)
@@ -12323,9 +12538,14 @@ function ultimoblockage()
 	end
 end
 
+local scrambled = false
 
 function team(This, sender, messagetype, psize, params)
-
+if not scrambled then
+	scrambled = true
+	io.write("scramble \n")
+	scrambleworms()
+end
 
 if (messagetype == TaskMessage_TurnStarted) then
 	local num = getNumObjects(ClassType_Task_OilDrum) -- recharge sentrys
@@ -12552,8 +12772,11 @@ function crate(This, sender, messagetype, psize, params)
 				end
 			end
 		end
-		if (This.gravityfactor < 0) then
+		if (This.gravityfactor < 0) or (This.gravityfactor == 0) then
 			This.gravityfactor = 0
+			if This.speedY < 0 then
+				This.speedY = 0
+			end
 		end
 		if (messagetype == TaskMessage_RenderScene) and (This.gravityfactor == 0) and (This.ropeanchorX < 69) then
 			return 1
@@ -13040,9 +13263,13 @@ function render( layer, posx,posy, sprite,  frame)
 					if fakeframe < 50000 then
 						fakeframe = fakeframe + 50
 					end
-				else
-					fakeframe = 0
-				end
+		else
+			fakeframe = 0
+		end
+		--if sprite & translatentsprite == 0 then
+			--sprite = sprite | translatentsprite
+			--drawSpriteLocal(posy,layer,posx,sprite,frame)
+			--return 1
 		if (currworm.selectedweapon == customweaponsbyname["Maiktungo"])then
 			local curr = (sprite & 0x3FF)
 			if curr == 0 then
@@ -13266,11 +13493,6 @@ function tracker(This, sender, messagetype, psize, params)
 end
 
 
-function land(This, sender, messagetype, psize, params)
-	--if (messagetype == TaskMessage_Explosion) then
-		--return 1
-	--end
-end
 
 
 function scream1() io.write("1 \n")  return 1 end
@@ -13286,11 +13508,29 @@ function scream10() io.write("10 \n")return 1 end
 function scream11() io.write("11 \n")return 1 end
 
 
+function land(This, sender, messagetype, psize, params)
+	--if (messagetype == TaskMessage_Explosion) then
+		--return 1
+	--end
+	--if (messagetype == 133) then
+		if penddrawx then
+			writeLandRadius(36,penddrawx,penddrawy)
+			--penddrawx = nil
+		end
+	--end
+	--io.write("land(" .. messagetype .. ")\n")
+end
+
+function landraw(bit,land,posx,posy,layer)
+	--io.write(bit.. "," ..land.. "," ..posx.. "," ..posy.. "," ..layer .. "\n")
+end
+
 local callsset = false
 function initialize()
 	if not callsset then
 		--CTaskWorm_RegisterCallback_vtable8(tracker)
-		
+		--CTaskLand_RegisterCallback_vtable8(land)
+		--registerCallback_writeLandRaw(landraw)
 		registerCallback_fireWeapon(weapcall)
 		registerCallback_fireBulletProjectile(firebulletcall)
 		CTaskTurnGame_RegisterCallback_vtable8(turn)
@@ -13366,6 +13606,7 @@ function initialize()
 	ResetStuff()
 	InitWormData()
 	gavedrill = false
+	scrambled = false
 	--sounds must me in the same order as they are in the programm start
  customsound = registerCustomSound("DATA/User/Fanfare/Team17-Applauds.wav")
  customsound2 = registerCustomSound("DATA/Streams/new-win-bronze.wav")
@@ -13520,6 +13761,7 @@ sentrydactivate_sfx = registerCustomSound("jelly/sounds/SentryDeactivate.wav")
 	
 	
 	registerCustomWeapon(FillStruct(JumpStruct,getWeaponData(Weapon_ShotGun)), "jelly/placeholders/Weapon24.img", "Lazor", "Lazor") -- Weapon_Jump
+	registerCustomWeapon(FillStruct(CajasDeMikeStruct,getWeaponData(Weapon_ShotGun)), "jelly/placeholders/Weapon69.img", "DrawMap", "DrawMap") -- Weapon_Jump
 	registerCustomWeapon(FillStruct(DDrillStruct,getWeaponData(Weapon_Dynamite)), "jelly/placeholders/Weapon1.img", "Test OBJCol", "Test OBJCol") -- Weapon_Jump
 	registerCustomWeapon(FillStruct(DDrillStruct,getWeaponData(Weapon_Dynamite)), "jelly/placeholders/Weapon2.img", "Test OBJCol2", "Test OBJCol2") -- Weapon_Jump
 	registerCustomWeapon(FillStruct(DDrillStruct,getWeaponData(Weapon_Dynamite)), "jelly/placeholders/Weapon3.img", "Test OBJCol3", "Test OBJCol3") -- Weapon_Jump
@@ -13532,7 +13774,7 @@ sentrydactivate_sfx = registerCustomSound("jelly/sounds/SentryDeactivate.wav")
 	customblockwhitelist[customweaponsbyname["Afano de Mike"]] = true
 	--table.insert(customweapons,registerCustomWeapon(SuperSheepStruct, "jelly/placeholders/mortar.img", "Mortero de Mike", "Mortero de Mike")) --Weapon_MikeWorm
 	--PrintWeapon(getWeaponData(Weapon_Skunk))
-	
+	--PrintStuff(getWeaponData(Weapon_Girder)) --unknown24 = girderdistance
 	
 	setUtilityWeapon(customweaponsbyname["Doble Salto"],true)
 	setSheepWeapon(customweaponsbyname["Oveja de Mike"],true)
