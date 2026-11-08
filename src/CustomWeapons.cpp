@@ -845,11 +845,7 @@ _HookDefLazy(IsSheep, bool, __stdcall, (int param_1)) { //tired of getting this 
 }
 
 bool callIsSheep(int weapid) {
-	__asm push eax
-	__asm mov eax, weapid
-	bool ret = hookIsSheep(0);
-	__asm pop eax
-	return ret;
+	return issheepoverride[weapid];
 }
 
 
