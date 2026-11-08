@@ -107,10 +107,13 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown170"] = &CTaskWorm::unknown170;
 	ut["selectedweapon"] = &CTaskWorm::unknown170;
 	ut["unknown174"] = &CTaskWorm::unknown174;
+	ut["hpdisplay"] = &CTaskWorm::unknown178; //this does change it but I dunno wtf is the deal, its wonky, didnt look much into it
 	ut["unknown178"] = &CTaskWorm::unknown178;
+	ut["hpdateamount"] = &CTaskWorm::unknown17C; //shit that happens to the hp displas when you collect a hp crate
 	ut["unknown17C"] = &CTaskWorm::unknown17C;
 	ut["unknown180"] = &CTaskWorm::unknown180;
 	ut["unknown184"] = &CTaskWorm::unknown184;
+	ut["pendingdamage"] = &CTaskWorm::unknown188;
 	ut["unknown188"] = &CTaskWorm::unknown188;
 	ut["unknown18C"] = &CTaskWorm::unknown18C;
 	ut["unknown190"] = &CTaskWorm::unknown190;
@@ -183,6 +186,7 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown25C"] = &CTaskWorm::unknown25C;
 	ut["unknown260"] = &CTaskWorm::unknown260;
 	ut["unknown264"] = &CTaskWorm::unknown264;
+	ut["displayreticle"] = &CTaskWorm::unknown268; //if the aiming thing should be displayed or not
 	ut["unknown268"] = &CTaskWorm::unknown268;
 	ut["unknown26C"] = &CTaskWorm::unknown26C;
 	ut["readytofire"] = &CTaskWorm::unknown26C; // 65527 ready ( < 65527 not ready)
@@ -191,8 +195,9 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown274"] = &CTaskWorm::unknown274;
 	ut["unknown278"] = &CTaskWorm::unknown278;
 	ut["unknown27C"] = &CTaskWorm::unknown27C;
+	ut["allowedtodie"] = &CTaskWorm::unknown280; //WILL fucking die, even if it has hp when its set to 1
 	ut["unknown280"] = &CTaskWorm::unknown280;
-	ut["unknown284"] = &CTaskWorm::unknown284;
+	ut["unknown284"] = &CTaskWorm::unknown284; //if set the worm cannot even select a weapon
 	ut["unknown288"] = &CTaskWorm::unknown288;
 	ut["unknown28C"] = &CTaskWorm::unknown28C;
 	ut["unknown290"] = &CTaskWorm::unknown290;
@@ -218,7 +223,9 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown2D4"] = &CTaskWorm::unknown2D4;
 	ut["unknown2D8"] = &CTaskWorm::unknown2D8;
 	ut["unknown2DC"] = &CTaskWorm::unknown2DC;
+	ut["cursorx"] = &CTaskWorm::unknown2E0; //does not change it visually but it still works
 	ut["unknown2E0"] = &CTaskWorm::unknown2E0;
+	ut["cursory"] = &CTaskWorm::unknown2E4; //does not change it visually but it still works
 	ut["unknown2E4"] = &CTaskWorm::unknown2E4;
 	ut["unknown2E8"] = &CTaskWorm::unknown2E8;
 	ut["unknown2EC"] = &CTaskWorm::unknown2EC;
