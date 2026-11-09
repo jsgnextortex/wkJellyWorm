@@ -165,7 +165,7 @@ int CTaskWorm::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown218"] = &CTaskWorm::unknown218;
 	ut["unknown21C"] = &CTaskWorm::unknown21C;
 	ut["unknown220"] = &CTaskWorm::unknown220;
-	ut["jeyfuel"] = &CTaskWorm::unknown220;
+	ut["jetfuel"] = &CTaskWorm::unknown220;
 	ut["jetpackturnstate"] = &CTaskWorm::unknown224;
 	ut["unknown224"] = &CTaskWorm::unknown224;
 	ut["unknown228"] = &CTaskWorm::unknown228;

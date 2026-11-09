@@ -419,6 +419,7 @@ int CTaskTurnGame::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown184"] = &CTaskTurnGame::unknown184;
 	ut["roundtimer"] = &CTaskTurnGame::unknown184;
 	ut["unknown188"] = &CTaskTurnGame::unknown188;
+	ut["turntimer"] = &CTaskTurnGame::unknown188;
 	ut["turntimerone"] = &CTaskTurnGame::unknown188;
 	ut["unknown18C"] = &CTaskTurnGame::unknown18C;
 	ut["turntimertwo"] = &CTaskTurnGame::unknown18C;

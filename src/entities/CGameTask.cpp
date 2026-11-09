@@ -37,14 +37,18 @@ int CGameTask::install(SignatureScanner &signatureScanner, module mod) {
 	CTaskAddLuaVTHooks(CGameTask)
 	CGameTaskAddLuaVTHooks(CGameTask)
 
-	ut["collisionstate"] = &CGameTask::collisionstate;
+	ut["collisionlayer"] = &CGameTask::collisionstate;
 	ut["collisionflags"] = &CGameTask::collisionflags;
+	ut["shapeid"] = &CGameTask::unknown38;
 	ut["unknown38"] = &CGameTask::unknown38;
+	ut["active"] = &CGameTask::unknown3C;
 	ut["unknown3C"] = &CGameTask::unknown3C;
 	ut["unknown40"] = &CGameTask::unknown40;
 	ut["unknown44"] = &CGameTask::unknown44; 
 	ut["state"] = &CGameTask::unknown44; 
+	ut["isstatic"] = &CGameTask::unknown48;
 	ut["unknown48"] = &CGameTask::unknown48;
+	ut["mass"] = &CGameTask::unknown4C; //float
 	ut["unknown4C"] = &CGameTask::unknown4C;
 	ut["unknown50"] = &CGameTask::unknown50;
 	ut["unknown54"] = &CGameTask::unknown54;
@@ -67,8 +71,10 @@ int CGameTask::install(SignatureScanner &signatureScanner, module mod) {
 	ut["unknown98"] = &CGameTask::unknown98;
 	ut["unknown9C"] = &CGameTask::unknown9C;
 	ut["unknownA0"] = &CGameTask::unknownA0;
+	ut["underwater"] = &CGameTask::unknownA4;
 	ut["unknownA4"] = &CGameTask::unknownA4;
 	ut["waterskimfactor"] = &CGameTask::waterskimfactor;
+	ut["settle"] = &CGameTask::unknownAC;
 	ut["unknownAC"] = &CGameTask::unknownAC;
 	ut["unknownB0"] = &CGameTask::underwater;
 	ut["underwater"] = &CGameTask::underwater;
@@ -83,6 +89,7 @@ int CGameTask::install(SignatureScanner &signatureScanner, module mod) {
 	ut["numberofropesegments"] = &CGameTask::numberofropesegments;
 	ut["unkfilterclouds"] = &CGameTask::unkfilterclouds;
 	ut["unknownD8"] = &CGameTask::unknownD8; //always 256?
+	ut["shape"] = &CGameTask::unknownDC; 
 	ut["unknownDC"] = &CGameTask::unknownDC; //used by actual shit (oildrum?)
 	ut["unknownE0"] = &CGameTask::unknownE0; //related to entity init
 	ut["unknownE4"] = &CGameTask::unknownE4; //filter cloud shit
